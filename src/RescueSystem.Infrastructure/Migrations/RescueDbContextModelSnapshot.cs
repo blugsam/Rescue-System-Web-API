@@ -78,14 +78,14 @@ namespace RescueSystem.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("CurrentStatus")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("SerialNumber")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -123,9 +123,9 @@ namespace RescueSystem.Infrastructure.Migrations
 
                     b.ToTable("HealthMetrics", t =>
                         {
-                            t.HasCheckConstraint("CK_HealthMetric_Pulse", "Pulse IS NULL OR (Pulse >= 30 AND Pulse <= 250)");
+                            t.HasCheckConstraint("CK_HealthMetric_Pulse", "\"Pulse\" IS NULL OR (\"Pulse\" >= 30 AND \"Pulse\" <= 250)");
 
-                            t.HasCheckConstraint("CK_HealthMetric_Temp", "BodyTemperature IS NULL OR (BodyTemperature >= 30 AND BodyTemperature <= 45)");
+                            t.HasCheckConstraint("CK_HealthMetric_Temp", "\"BodyTemperature\" IS NULL OR (\"BodyTemperature\" >= 30 AND \"BodyTemperature\" <= 45)");
                         });
                 });
 

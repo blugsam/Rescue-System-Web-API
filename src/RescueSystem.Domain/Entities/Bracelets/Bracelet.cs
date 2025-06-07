@@ -6,7 +6,7 @@ namespace RescueSystem.Domain.Entities.Bracelets
     {
         public Guid Id { get; set; }
         public required string SerialNumber { get; set; }
-        public BraceletStatus CurrentStatus { get; set; }
+        public BraceletStatus Status { get; set; }
 
         public Guid UserId { get; set; }
         public User User { get; set; } = null!;

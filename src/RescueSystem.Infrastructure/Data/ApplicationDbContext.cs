@@ -45,7 +45,7 @@ namespace RescueSystem.Infrastructure
                 entity.HasIndex(b => b.SerialNumber)
                       .IsUnique();
 
-                entity.Property(b => b.CurrentStatus)
+                entity.Property(b => b.Status)
                       .HasConversion<string>()
                       .IsRequired();
 
@@ -104,8 +104,8 @@ namespace RescueSystem.Infrastructure
 
                 entity.ToTable(t =>
                 {
-                    t.HasCheckConstraint("CK_HealthMetric_Pulse", "Pulse IS NULL OR (Pulse >= 30 AND Pulse <= 250)");
-                    t.HasCheckConstraint("CK_HealthMetric_Temp", "BodyTemperature IS NULL OR (BodyTemperature >= 30 AND BodyTemperature <= 45)");
+                    t.HasCheckConstraint("CK_HealthMetric_Pulse", "\"Pulse\" IS NULL OR (\"Pulse\" >= 30 AND \"Pulse\" <= 250)");
+                    t.HasCheckConstraint("CK_HealthMetric_Temp", "\"BodyTemperature\" IS NULL OR (\"BodyTemperature\" >= 30 AND \"BodyTemperature\" <= 45)");
                 });
             });
         }

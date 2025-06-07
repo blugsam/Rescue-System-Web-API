@@ -30,7 +30,7 @@ namespace RescueSystem.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     SerialNumber = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    CurrentStatus = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -97,8 +97,8 @@ namespace RescueSystem.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_HealthMetrics", x => x.Id);
-                    table.CheckConstraint("CK_HealthMetric_Pulse", "Pulse IS NULL OR (Pulse >= 30 AND Pulse <= 250)");
-                    table.CheckConstraint("CK_HealthMetric_Temp", "BodyTemperature IS NULL OR (BodyTemperature >= 30 AND BodyTemperature <= 45)");
+                    table.CheckConstraint("CK_HealthMetric_Pulse", "\"Pulse\" IS NULL OR (\"Pulse\" >= 30 AND \"Pulse\" <= 250)");
+                    table.CheckConstraint("CK_HealthMetric_Temp", "\"BodyTemperature\" IS NULL OR (\"BodyTemperature\" >= 30 AND \"BodyTemperature\" <= 45)");
                     table.ForeignKey(
                         name: "FK_HealthMetrics_Alerts_AlertId",
                         column: x => x.AlertId,
