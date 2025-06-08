@@ -1,8 +1,7 @@
-﻿namespace RescueSystem.Application.Contracts.Requests
+﻿namespace RescueSystem.Application.Contracts.Responses;
+
+public class HealthMetricsDto
 {
-    public class HealthMetricsDto
-    {
-        public double? Pulse { get; set; }
-        public double? BodyTemperature { get; set; }
-    }
+    public double? Pulse { get; set; }
+    public double? BodyTemperature { get; set; }
 }
