@@ -11,4 +11,7 @@ public class AlertDetailsDto
 
     public BraceletDetailsDto Bracelet { get; set; } = null!;
     public HealthMetricsDto HealthMetrics { get; set; } = null!;
+
+    public string QualityLevel { get; set; } = null!;
+    public IEnumerable<string> ValidationErrors { get; set; } = Array.Empty<string>();
 }

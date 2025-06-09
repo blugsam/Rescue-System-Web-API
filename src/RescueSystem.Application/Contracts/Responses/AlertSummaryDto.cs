@@ -9,4 +9,6 @@ public class AlertSummaryDto
 
     public string UserFullName { get; set; } = null!;
     public string BraceletSerialNumber { get; set; } = null!;
+
+    public string QualityLevel { get; set; } = null!;
 }

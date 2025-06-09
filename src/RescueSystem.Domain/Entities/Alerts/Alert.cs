@@ -18,6 +18,6 @@ namespace RescueSystem.Domain.Entities.Alerts
         public HealthMetric? HealthMetric { get; set; }
 
         public AlertQualityLevel QualityLevel { get; set; }
-        public ICollection<string> ValidationErrors { get; set; } = new List<string>();
+        public ICollection<AlertValidationError> ValidationErrors { get; set; } = new List<AlertValidationError>();
     }
 }

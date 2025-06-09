@@ -1,17 +1,16 @@
 ﻿using RescueSystem.Domain.Entities.Bracelets;
-using RescueSystem.Domain.Entities.Health.RescueSystem.Domain.Entities;
+using RescueSystem.Domain.Entities.Health;
 
-namespace RescueSystem.Domain.Entities
+namespace RescueSystem.Domain.Entities;
+
+public class User
 {
-    public class User
-    {
-        public Guid Id { get; set; }
-        public required string FullName { get; set; }
-        public DateOnly DateOfBirth { get; set; }
+    public Guid Id { get; set; }
+    public required string FullName { get; set; }
+    public DateOnly DateOfBirth { get; set; }
 
-        public Bracelet? Bracelet { get; set; }
+    public Bracelet? Bracelet { get; set; }
 
-        public Guid? HealthProfileId { get; set; }
-        public HealthProfileThresholds? HealthProfile { get; set; }
-    }
+    public Guid? HealthProfileId { get; set; }
+    public HealthProfileThresholds? HealthProfile { get; set; }
 }

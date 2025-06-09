@@ -3,7 +3,6 @@ using RescueSystem.Domain.Entities;
 using RescueSystem.Domain.Entities.Alerts;
 using RescueSystem.Domain.Entities.Bracelets;
 using RescueSystem.Domain.Entities.Health;
-using RescueSystem.Domain.Entities.Health.RescueSystem.Domain.Entities;
 
 namespace RescueSystem.Infrastructure
 {
@@ -18,6 +17,7 @@ namespace RescueSystem.Infrastructure
         public DbSet<Bracelet> Bracelets { get; set; }
         public DbSet<Alert> Alerts { get; set; }
         public DbSet<AlertTrigger> AlertTriggers { get; set; }
+        public DbSet<AlertValidationError> AlertValidationErrors { get; set; }
         public DbSet<HealthMetric> HealthMetrics { get; set; }
         public DbSet<HealthProfileThresholds> HealthProfileThresholds { get; set; }
 
@@ -73,22 +73,13 @@ namespace RescueSystem.Infrastructure
                       .HasConversion<string>()
                       .IsRequired();
 
-                entity.Property(a => a.Timestamp)
+                entity.Property(a => a.QualityLevel)
+                      .HasConversion<string>()
                       .IsRequired();
 
-                entity.Property(a => a.Latitude)
-                      .IsRequired();
-                entity.Property(a => a.Longitude)
-                      .IsRequired();
-
-                entity.HasMany(a => a.Triggers)
-                      .WithOne(t => t.Alert)
-                      .HasForeignKey(t => t.AlertId)
-                      .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(a => a.HealthMetric)
-                      .WithOne(hm => hm.Alert)
-                      .HasForeignKey<HealthMetric>(hm => hm.AlertId)
+                entity.HasMany(a => a.ValidationErrors)
+                      .WithOne(ve => ve.Alert)
+                      .HasForeignKey(ve => ve.AlertId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
@@ -101,6 +92,12 @@ namespace RescueSystem.Infrastructure
 
                 entity.HasIndex(t => new { t.AlertId, t.Type })
                       .IsUnique();
+            });
+
+            modelBuilder.Entity<AlertValidationError>(entity =>
+            {
+                entity.HasKey(ve => ve.Id);
+                entity.Property(ve => ve.ErrorMessage).IsRequired();
             });
 
             modelBuilder.Entity<HealthMetric>(entity =>
