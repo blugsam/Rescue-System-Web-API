@@ -1,4 +1,5 @@
 ﻿using RescueSystem.Domain.Entities.Bracelets;
+using RescueSystem.Domain.Entities.Health;
 
 namespace RescueSystem.Domain.Entities.Alerts
 {
@@ -14,7 +15,7 @@ namespace RescueSystem.Domain.Entities.Alerts
 
         public Guid BraceletId { get; set; }
         public Bracelet Bracelet { get; set; } = null!;
-        public HealthMetric HealthMetric { get; set; } = null!;
+        public HealthMetric? HealthMetric { get; set; }
 
         public AlertQualityLevel QualityLevel { get; set; }
         public ICollection<string> ValidationErrors { get; set; } = new List<string>();

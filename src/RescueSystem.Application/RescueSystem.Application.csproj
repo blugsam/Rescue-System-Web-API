@@ -7,11 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="FluentValidation" Version="12.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.5" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\RescueSystem.Domain\RescueSystem.Domain.csproj" />
+    <ProjectReference Include="..\RescueSystem.Infrastructure\RescueSystem.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

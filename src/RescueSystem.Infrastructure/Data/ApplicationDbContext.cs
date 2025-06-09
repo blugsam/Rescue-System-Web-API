@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RescueSystem.Domain.Entities;
-using RescueSystem.Domain.Entities.Bracelets;
 using RescueSystem.Domain.Entities.Alerts;
+using RescueSystem.Domain.Entities.Bracelets;
+using RescueSystem.Domain.Entities.Health;
+using RescueSystem.Domain.Entities.Health.RescueSystem.Domain.Entities;
 
 namespace RescueSystem.Infrastructure
 {
@@ -17,6 +19,7 @@ namespace RescueSystem.Infrastructure
         public DbSet<Alert> Alerts { get; set; }
         public DbSet<AlertTrigger> AlertTriggers { get; set; }
         public DbSet<HealthMetric> HealthMetrics { get; set; }
+        public DbSet<HealthProfileThresholds> HealthProfileThresholds { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,6 +37,11 @@ namespace RescueSystem.Infrastructure
                       .WithOne(b => b.User)
                       .HasForeignKey<Bracelet>(b => b.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(u => u.HealthProfile)
+                      .WithMany(h => h.Users)
+                      .HasForeignKey(u => u.HealthProfileId)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<Bracelet>(entity =>
@@ -107,6 +115,48 @@ namespace RescueSystem.Infrastructure
                     t.HasCheckConstraint("CK_HealthMetric_Pulse", "\"Pulse\" IS NULL OR (\"Pulse\" >= 30 AND \"Pulse\" <= 250)");
                     t.HasCheckConstraint("CK_HealthMetric_Temp", "\"BodyTemperature\" IS NULL OR (\"BodyTemperature\" >= 30 AND \"BodyTemperature\" <= 45)");
                 });
+            });
+
+            modelBuilder.Entity<HealthProfileThresholds>(entity =>
+            {
+                entity.HasKey(h => h.Id);
+
+                entity.Property(h => h.ProfileName)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.HasIndex(h => h.ProfileName)
+                      .IsUnique();
+
+                entity.HasData(
+                    new HealthProfileThresholds
+                    {
+                        Id = Guid.Parse("a66ca370-bf93-4c12-be9a-086b98136eea"),
+                        ProfileName = "Default",
+                        HighPulseThreshold = 160,
+                        LowPulseThreshold = 50,
+                        HighTempThreshold = 38.5,
+                        LowTempThreshold = 35.0
+                    },
+                    new HealthProfileThresholds
+                    {
+                        Id = Guid.Parse("c1464740-bca9-4289-8415-2e8eadf6d623"),
+                        ProfileName = "Hypertensive",
+                        HighPulseThreshold = 140,
+                        LowPulseThreshold = 55,
+                        HighTempThreshold = 38.5,
+                        LowTempThreshold = 35.0
+                    },
+                    new HealthProfileThresholds
+                    {
+                        Id = Guid.Parse("4d74cc16-2a76-4772-9643-e82cb122c898"),
+                        ProfileName = "Athlete",
+                        HighPulseThreshold = 180,
+                        LowPulseThreshold = 40,
+                        HighTempThreshold = 38.5,
+                        LowTempThreshold = 35.0
+                    }
+                );
             });
         }
 

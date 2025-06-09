@@ -1,6 +1,6 @@
 ﻿using RescueSystem.Domain.Entities.Alerts;
 
-namespace RescueSystem.Domain.Entities
+namespace RescueSystem.Domain.Entities.Health
 {
     public class HealthMetric
     {
@@ -8,7 +8,7 @@ namespace RescueSystem.Domain.Entities
         public double? Pulse { get; set; }
         public double? BodyTemperature { get; set; }
 
-        public Guid AlertId { get; set; }
-        public Alert Alert { get; set; } = null!;
+        public Guid? AlertId { get; set; }
+        public Alert? Alert { get; set; }
     }
 }

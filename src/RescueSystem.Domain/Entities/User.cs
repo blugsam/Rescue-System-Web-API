@@ -1,4 +1,5 @@
 ﻿using RescueSystem.Domain.Entities.Bracelets;
+using RescueSystem.Domain.Entities.Health.RescueSystem.Domain.Entities;
 
 namespace RescueSystem.Domain.Entities
 {
@@ -9,5 +10,8 @@ namespace RescueSystem.Domain.Entities
         public DateOnly DateOfBirth { get; set; }
 
         public Bracelet? Bracelet { get; set; }
+
+        public Guid? HealthProfileId { get; set; }
+        public HealthProfileThresholds? HealthProfile { get; set; }
     }
 }

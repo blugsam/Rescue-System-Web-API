@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using RescueSystem.Application.Contracts.Requests;
 using RescueSystem.Application.Contracts.Responses;
-using RescueSystem.Domain.Entities;
 using RescueSystem.Domain.Entities.Alerts;
+using RescueSystem.Domain.Entities.Health;
 
 namespace RescueSystem.Application.Mappings
 {

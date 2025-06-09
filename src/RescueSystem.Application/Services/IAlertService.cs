@@ -1,9 +1,10 @@
 ﻿using RescueSystem.Application.Contracts.Requests;
+using RescueSystem.Application.Contracts.Responses;
 
-namespace RescueSystem.Application.Services
+namespace RescueSystem.Application.Interfaces
 {
     public interface IAlertService
     {
-        Task ProcessIncomingSignal(CreateAlertRequest request);
+        Task<AlertDetailsDto> CreateAlertFromSignalAsync(CreateAlertRequest request);
     }
 }
