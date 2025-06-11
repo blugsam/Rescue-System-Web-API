@@ -1,9 +1,8 @@
-﻿namespace RescueSystem.Domain.Entities.Bracelets
+﻿namespace RescueSystem.Domain.Entities.Bracelets;
+
+public enum BraceletStatus
 {
-    public enum BraceletStatus
-    {
-        Active,
-        Inactive,
-        InRepair
-    }
+    Active,
+    Inactive,
+    InRepair
 }

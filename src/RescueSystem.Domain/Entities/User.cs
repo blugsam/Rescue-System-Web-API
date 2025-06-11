@@ -9,6 +9,9 @@ public class User
     public required string FullName { get; set; }
     public DateOnly DateOfBirth { get; set; }
 
+    public string? MedicalNotes { get; set; }
+    public string? EmergencyContact { get; set; }
+
     public Bracelet? Bracelet { get; set; }
 
     public Guid? HealthProfileId { get; set; }

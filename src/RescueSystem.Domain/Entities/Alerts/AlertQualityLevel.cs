@@ -1,9 +1,8 @@
-﻿namespace RescueSystem.Domain.Entities.Alerts
+﻿namespace RescueSystem.Domain.Entities.Alerts;
+
+public enum AlertQualityLevel
 {
-    public enum AlertQualityLevel
-    {
-        Red,
-        Yellow,
-        Gray
-    }
+    Red,
+    Yellow,
+    Gray
 }

@@ -1,7 +1,7 @@
 ﻿using RescueSystem.Application.Contracts.Requests;
 using RescueSystem.Application.Contracts.Responses;
 
-namespace RescueSystem.Application.Services;
+namespace RescueSystem.Application.Services.AlertService;
 
 public interface IAlertService
 {

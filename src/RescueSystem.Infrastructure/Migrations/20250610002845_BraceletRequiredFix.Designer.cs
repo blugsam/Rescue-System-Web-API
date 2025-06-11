@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RescueSystem.Infrastructure;
@@ -11,9 +12,11 @@ using RescueSystem.Infrastructure;
 namespace RescueSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(RescueDbContext))]
-    partial class RescueDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250610002845_BraceletRequiredFix")]
+    partial class BraceletRequiredFix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,7 +31,7 @@ namespace RescueSystem.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("BraceletId")
+                    b.Property<Guid>("BraceletId")
                         .HasColumnType("uuid");
 
                     b.Property<double>("Latitude")
@@ -248,7 +251,8 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.HasOne("RescueSystem.Domain.Entities.Bracelets.Bracelet", "Bracelet")
                         .WithMany("Alerts")
                         .HasForeignKey("BraceletId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Bracelet");
                 });

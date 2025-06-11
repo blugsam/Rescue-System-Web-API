@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RescueSystem.Application.Contracts.Requests;
 using RescueSystem.Application.Contracts.Responses;
-using RescueSystem.Application.Services;
+using RescueSystem.Application.Services.AlertService;
+
+namespace RescueSystem.Api.Controllers;
 
 [ApiController]
 [Route("api/alerts")]
@@ -11,7 +13,6 @@ public class AlertsController : ControllerBase
 
     public AlertsController(IAlertService alertService) => _alertService = alertService;
 
-    /// <summary>Получить список всех тревог.</summary>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<AlertSummaryDto>>> GetAll()
@@ -20,7 +21,6 @@ public class AlertsController : ControllerBase
         return Ok(list);
     }
 
-    /// <summary>Получить детали тревоги по идентификатору.</summary>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -31,7 +31,6 @@ public class AlertsController : ControllerBase
         return Ok(dto);
     }
 
-    /// <summary>Создать новую тревогу (получить сигнал от браслета).</summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

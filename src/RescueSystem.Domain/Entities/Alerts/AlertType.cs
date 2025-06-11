@@ -1,11 +1,10 @@
-﻿namespace RescueSystem.Domain.Entities.Alerts
+﻿namespace RescueSystem.Domain.Entities.Alerts;
+
+public enum AlertType
 {
-    public enum AlertType
-    {
-        SosButton,
-        HighPulse,
-        LowPulse,
-        HighTemperature,
-        LowTemperature
-    }
+    SosButton,
+    HighPulse,
+    LowPulse,
+    HighTemperature,
+    LowTemperature
 }

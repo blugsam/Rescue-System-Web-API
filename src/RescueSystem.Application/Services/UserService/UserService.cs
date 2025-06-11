@@ -1,0 +1,144 @@
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using RescueSystem.Api.Exceptions;
+using RescueSystem.Application.Contracts;
+using RescueSystem.Application.Contracts.Requests;
+using RescueSystem.Application.Contracts.Responses;
+using RescueSystem.Application.Exceptions;
+using RescueSystem.Domain.Entities;
+using RescueSystem.Infrastructure;
+
+namespace RescueSystem.Application.Services.UserService;
+
+public class UserService : IUserService
+{
+    private readonly RescueDbContext _db;
+    private readonly IMapper _mapper;
+    private readonly ILogger<UserService> _logger;
+
+    public UserService(RescueDbContext db, IMapper mapper, ILogger<UserService> logger)
+    {
+        _db = db;
+        _mapper = mapper;
+        _logger = logger;
+    }
+
+    public async Task<UserDetailsDto> CreateUserAsync(CreateUserRequest request)
+    {
+        var user = _mapper.Map<User>(request);
+        user.Id = Guid.NewGuid();
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
+        _logger.LogInformation("Создан новый пользователь. ID: {UserId}", user.Id);
+
+        return await _db.Users.AsNoTracking().Where(u => u.Id == user.Id)
+            .ProjectTo<UserDetailsDto>(_mapper.ConfigurationProvider).SingleAsync();
+    }
+
+    public async Task<UserDetailsDto?> GetUserByIdAsync(Guid userId)
+    {
+        return await _db.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .ProjectTo<UserDetailsDto>(_mapper.ConfigurationProvider)
+            .SingleOrDefaultAsync();
+    }
+
+    public async Task<PagedResult<UserSummaryDto>> GetAllUsersAsync(PaginationQueryParameters queryParams)
+    {
+        // 1. Поскольку PageNumber и PageSize уже нормализуются в сеттерах PaginationQueryParameters,
+        //    можем использовать их напрямую:
+        int pageNumber = queryParams.PageNumber;
+        int pageSize = queryParams.PageSize;
+
+        IQueryable<User> query = _db.Users.AsNoTracking();
+
+        // 2. Фильтрация по SearchTerm (SearchTerm уже Trim и null, если пустая)
+        if (!string.IsNullOrEmpty(queryParams.SearchTerm))
+        {
+            var pattern = $"%{queryParams.SearchTerm}%";
+            query = query.Where(u => EF.Functions.ILike(u.FullName, pattern));
+
+            var lowerTerm = queryParams.SearchTerm.ToLowerInvariant();
+            query = query.Where(u => u.FullName.ToLower().Contains(lowerTerm));
+        }
+
+        var totalCount = await query.CountAsync();
+
+        if (!string.IsNullOrEmpty(queryParams.SortBy))
+        {
+            switch (queryParams.SortBy.Trim().ToLowerInvariant())
+            {
+                case "fullname":
+                    query = queryParams.SortDescending
+                        ? query.OrderByDescending(u => u.FullName)
+                        : query.OrderBy(u => u.FullName);
+                    break;
+                case "dateofbirth":
+                    query = queryParams.SortDescending
+                        ? query.OrderByDescending(u => u.DateOfBirth)
+                        : query.OrderBy(u => u.DateOfBirth);
+                    break;
+                default:
+                    query = queryParams.SortDescending
+                        ? query.OrderByDescending(u => u.FullName)
+                        : query.OrderBy(u => u.FullName);
+                    break;
+            }
+        }
+        else
+        {
+            query = queryParams.SortDescending
+                ? query.OrderByDescending(u => u.FullName)
+                : query.OrderBy(u => u.FullName);
+        }
+
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ProjectTo<UserSummaryDto>(_mapper.ConfigurationProvider)
+            .ToListAsync();
+
+        return new PagedResult<UserSummaryDto>
+        {
+            Items = items,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
+    }
+
+
+
+    public async Task<UserDetailsDto> UpdateUserAsync(Guid userId, UpdateUserRequest request)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException($"Пользователь с ID '{userId}' не найден.");
+
+        _mapper.Map(request, user);
+        await _db.SaveChangesAsync();
+        _logger.LogInformation("Данные пользователя {UserId} обновлены.", userId);
+
+        return await _db.Users.AsNoTracking().Where(u => u.Id == userId)
+            .ProjectTo<UserDetailsDto>(_mapper.ConfigurationProvider).SingleAsync();
+    }
+
+    public async Task DeleteUserAsync(Guid userId)
+    {
+        var user = await _db.Users.Include(u => u.Bracelet).FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException($"Пользователь с ID '{userId}' не найден.");
+
+        if (user.Bracelet != null)
+        {
+            throw new BadRequestException("Нельзя удалить пользователя, которому назначен браслет. Сначала отвяжите браслет.");
+        }
+
+        _db.Users.Remove(user);
+        await _db.SaveChangesAsync();
+        _logger.LogWarning("Пользователь {UserId} был удален.", user.Id);
+    }
+}

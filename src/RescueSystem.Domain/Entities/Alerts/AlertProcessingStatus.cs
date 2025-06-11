@@ -1,11 +1,10 @@
-﻿namespace RescueSystem.Domain.Entities.Alerts
+﻿namespace RescueSystem.Domain.Entities.Alerts;
+
+public enum AlertProcessingStatus
 {
-    public enum AlertProcessingStatus
-    {
-        New,
-        Acknowledged,
-        InProgress,
-        Resolved,
-        FalseAlarm
-    }
+    New,
+    Acknowledged,
+    InProgress,
+    Resolved,
+    FalseAlarm
 }

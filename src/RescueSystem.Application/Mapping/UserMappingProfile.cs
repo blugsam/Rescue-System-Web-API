@@ -1,14 +1,20 @@
 ﻿using AutoMapper;
+using RescueSystem.Application.Contracts.Requests;
 using RescueSystem.Application.Contracts.Responses;
 using RescueSystem.Domain.Entities;
 
-namespace RescueSystem.Application.Mappings
+namespace RescueSystem.Application.Mappings;
+
+public class UserMappingProfile : Profile
 {
-    public class UserMappingProfile : Profile
+    public UserMappingProfile()
     {
-        public UserMappingProfile()
-        {
-            CreateMap<User, UserDetailsDto>();
-        }
+        CreateMap<CreateUserRequest, User>();
+
+        CreateMap<UpdateUserRequest, User>();
+
+        CreateMap<User, UserSummaryDto>();
+
+        CreateMap<User, UserDetailsDto>();
     }
 }
