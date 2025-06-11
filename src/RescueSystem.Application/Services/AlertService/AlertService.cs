@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RescueSystem.Application.Contracts.Requests;
 using RescueSystem.Application.Contracts.Responses;
+using RescueSystem.Application.Exceptions;
 using RescueSystem.Application.Interfaces;
 using RescueSystem.Domain.Entities.Alerts;
 using RescueSystem.Domain.Entities.Health;
@@ -129,6 +130,22 @@ public class AlertService : IAlertService
         }
 
         return triggers;
+    }
+
+    public async Task DeleteAlertAsync(Guid alertId)
+    {
+        var alert = await _dbContext.Alerts.FirstOrDefaultAsync(a => a.Id == alertId);
+
+        if (alert == null)
+        {
+            throw new NotFoundException($"Тревога с ID '{alertId}' не найдена.");
+        }
+
+        _dbContext.Alerts.Remove(alert);
+
+        await _dbContext.SaveChangesAsync();
+
+        _logger.LogWarning("Тревога {AlertId} была удалена.", alertId);
     }
 
     public async Task<IEnumerable<AlertSummaryDto>> GetAllAlertsSummaryAsync()

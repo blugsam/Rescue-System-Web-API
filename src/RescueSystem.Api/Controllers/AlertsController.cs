@@ -39,4 +39,14 @@ public class AlertsController : ControllerBase
         var created = await _alertService.CreateAlertFromSignalAsync(request);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
+
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        await _alertService.DeleteAlertAsync(id);
+
+        return NoContent();
+    }
 }

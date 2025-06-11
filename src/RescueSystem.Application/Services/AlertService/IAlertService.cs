@@ -8,5 +8,5 @@ public interface IAlertService
     Task<AlertDetailsDto> CreateAlertFromSignalAsync(CreateAlertRequest request);
     Task<IEnumerable<AlertSummaryDto>> GetAllAlertsSummaryAsync();
     Task<AlertDetailsDto?> GetAlertDetailsByIdAsync(Guid id);
-
+    Task DeleteAlertAsync(Guid alertId);
 }
