@@ -1,1 +1,1 @@
-# Rescue Bracelet Web API
+# Rescue System Web API
