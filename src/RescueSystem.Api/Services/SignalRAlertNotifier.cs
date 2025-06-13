@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using RescueSystem.Api.Hubs;
 using RescueSystem.Application.Interfaces;
-using RescueSystem.Application.Contracts.Responses;
+using RescueSystem.Contracts.Contracts.Responses;
 
 namespace RescueSystem.Api.Services
 {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RescueSystem.Application.Contracts.Requests;
-using RescueSystem.Application.Contracts.Responses;
+using RescueSystem.Contracts.Contracts.Requests;
+using RescueSystem.Contracts.Contracts.Responses;
 using RescueSystem.Application.Services.AlertService;
 
 namespace RescueSystem.Api.Controllers;

@@ -1,5 +1,6 @@
 ﻿using RescueSystem.Domain.Entities.Bracelets;
 using RescueSystem.Domain.Entities.Health;
+using RescueSystem.Contracts.Contracts.Enums;
 
 namespace RescueSystem.Domain.Entities.Alerts;
 

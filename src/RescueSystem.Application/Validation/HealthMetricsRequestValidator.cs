@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using RescueSystem.Application.Contracts.Requests;
+using RescueSystem.Contracts.Contracts.Requests;
 
 namespace RescueSystem.Application.Validation;
 

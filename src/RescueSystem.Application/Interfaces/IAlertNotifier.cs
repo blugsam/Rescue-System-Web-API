@@ -1,4 +1,4 @@
-﻿using RescueSystem.Application.Contracts.Responses;
+﻿using RescueSystem.Contracts.Contracts.Responses;
 
 namespace RescueSystem.Application.Interfaces
 {
