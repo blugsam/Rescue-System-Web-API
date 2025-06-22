@@ -1,20 +1,27 @@
+using FluentValidation;
+using Microsoft.Extensions.Configuration;
 using RescueSystem.Api.Extensions;
 using RescueSystem.Api.Hubs;
 using RescueSystem.Api.Services;
 using RescueSystem.Application.Interfaces;
 using RescueSystem.Application.Validation;
 using RescueSystem.Infrastructure.Extensions;
-using FluentValidation;
 using Serilog;
 
+//var configuration = new ConfigurationBuilder()
+//    .SetBasePath(Directory.GetCurrentDirectory())
+//    .AddJsonFile("appsettings.json")
+//    .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", true)
+//    .Build();
+
 Log.Logger = new LoggerConfiguration()
+    //.ReadFrom.Configuration(configuration)
     .WriteTo.Console()
     .CreateLogger();
+Log.Information("Starting Rescue System API host.");
 
 try
 {
-    Log.Information("Starting Rescue System API host.");
-
     var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddSerilog();
 
@@ -27,6 +34,8 @@ try
     builder.Services.AddScoped<IAlertNotifier, SignalRAlertNotifier>();
 
     var app = builder.Build();
+
+    app.UseSerilogRequestLogging();
 
     app.MapGet("/", () => "Rescue System API host succesfuly started.");
 
