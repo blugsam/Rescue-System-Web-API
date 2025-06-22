@@ -3,14 +3,16 @@ using AutoMapper.QueryableExtensions;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using RescueSystem.Contracts.Contracts.Requests;
-using RescueSystem.Contracts.Contracts.Responses;
-using RescueSystem.Contracts.Contracts.Enums;
 using RescueSystem.Application.Exceptions;
 using RescueSystem.Application.Interfaces;
+using RescueSystem.Contracts.Contracts.Enums;
+using RescueSystem.Contracts.Contracts.Requests;
+using RescueSystem.Contracts.Contracts.Responses;
+using RescueSystem.Domain.Entities;
 using RescueSystem.Domain.Entities.Alerts;
 using RescueSystem.Domain.Entities.Health;
 using RescueSystem.Infrastructure;
+using System.Text.Json;
 
 namespace RescueSystem.Application.Services.AlertService;
 
@@ -42,42 +44,39 @@ public class AlertService : IAlertService
             var grayAlert = new Alert
             {
                 Id = Guid.NewGuid(),
+
                 Timestamp = DateTimeOffset.UtcNow,
                 Latitude = request.Latitude,
                 Longitude = request.Longitude,
+
                 Status = AlertProcessingStatus.New,
                 QualityLevel = AlertQualityLevel.Gray,
+
                 ValidationErrors = new List<AlertValidationError>
                 {
-                    new() { Id = Guid.NewGuid(), ErrorMessage = $"Получен сигнал от неизвестного браслета: {request.SerialNumber}" }
+                    new()
+                    {
+                        Id = Guid.NewGuid(),
+                        ErrorMessage = $"Received signal from unknown bracelet: {request.SerialNumber}"
+                    }
                 }
             };
+
             _dbContext.Alerts.Add(grayAlert);
             await _dbContext.SaveChangesAsync();
 
-            return _mapper.Map<AlertDetailsDto>(grayAlert);
+            var grayAlertDto = _mapper.Map<AlertDetailsDto>(grayAlert);
+            await _alertNotifier.NotifyNewAlertAsync(_mapper.Map<AlertSummaryDto>(grayAlert));
+            return grayAlertDto;
         }
 
         var validationResult = await _validator.ValidateAsync(request);
 
         var alert = _mapper.Map<Alert>(request);
-
         alert.Id = Guid.NewGuid();
         alert.Timestamp = DateTimeOffset.UtcNow;
         alert.Status = AlertProcessingStatus.New;
         alert.BraceletId = bracelet.Id;
-
-        if (request.HealthMetrics != null)
-        {
-            alert.HealthMetric = _mapper.Map<HealthMetric>(request.HealthMetrics);
-            alert.HealthMetric.Id = Guid.NewGuid();
-        }
-
-        var defaultProfile = await _dbContext.HealthProfileThresholds
-            .AsNoTracking()
-            .SingleAsync(p => p.ProfileName == "Default");
-        var userThresholds = bracelet.User.HealthProfile ?? defaultProfile;
-        alert.Triggers = DetermineAlertTriggers(request, userThresholds, defaultProfile);
 
         if (validationResult.IsValid)
         {
@@ -87,22 +86,50 @@ public class AlertService : IAlertService
         {
             alert.QualityLevel = AlertQualityLevel.Yellow;
             alert.ValidationErrors = validationResult.Errors
-                .Select(error => new AlertValidationError
-                {
-                    Id = Guid.NewGuid(),
-                    ErrorMessage = error.ErrorMessage
-                })
+                .Select(error => new AlertValidationError { Id = Guid.NewGuid(), ErrorMessage = error.ErrorMessage })
                 .ToList();
         }
 
+        if (request.HealthMetrics != null)
+        {
+            var healthMetric = new HealthMetric
+            {
+                Id = Guid.NewGuid(),
+                RawDataJson = JsonSerializer.Serialize(request.HealthMetrics)
+            };
+
+            bool pulseIsInvalid = validationResult.Errors
+                .Any(e => e.PropertyName == $"{nameof(CreateAlertRequest.HealthMetrics)}.{nameof(HealthMetricsRequestDto.Pulse)}");
+
+            if (!pulseIsInvalid && request.HealthMetrics.Pulse.HasValue)
+            {
+                healthMetric.Pulse = request.HealthMetrics.Pulse.Value;
+            }
+
+            bool tempIsInvalid = validationResult.Errors
+                .Any(e => e.PropertyName == $"{nameof(CreateAlertRequest.HealthMetrics)}.{nameof(HealthMetricsRequestDto.BodyTemperature)}");
+
+            if (!tempIsInvalid && request.HealthMetrics.BodyTemperature.HasValue)
+            {
+                healthMetric.BodyTemperature = request.HealthMetrics.BodyTemperature.Value;
+            }
+
+            alert.HealthMetric = healthMetric;
+        }
+
+        var defaultProfile = await _dbContext.HealthProfileThresholds.AsNoTracking().SingleAsync(p => p.ProfileName == "Default");
+        var userThresholds = bracelet.User.HealthProfile ?? defaultProfile;
+        alert.Triggers = DetermineAlertTriggers(request, userThresholds, defaultProfile);
+
         _dbContext.Alerts.Add(alert);
         await _dbContext.SaveChangesAsync();
-
-        var alertSummary = _mapper.Map<AlertSummaryDto>(alert);
-        await _alertNotifier.NotifyNewAlertAsync(alertSummary);
-        _logger.LogInformation("Уведомление о новой тревоге {AlertId} отправлено всем клиентам.", alert.Id);
+        _logger.LogInformation("Created new alert {AlertId} with quality {QualityLevel}.", alert.Id, alert.QualityLevel);
 
         alert.Bracelet = bracelet;
+        var alertSummary = _mapper.Map<AlertSummaryDto>(alert);
+        await _alertNotifier.NotifyNewAlertAsync(alertSummary);
+        _logger.LogInformation("New alert notification {AlertId} sended.", alert.Id);
+
         return _mapper.Map<AlertDetailsDto>(alert);
     }
 
@@ -149,9 +176,30 @@ public class AlertService : IAlertService
         _logger.LogWarning("Тревога {AlertId} была удалена.", alertId);
     }
 
-    public async Task<IEnumerable<AlertSummaryDto>> GetAllAlertsSummaryAsync()
-        => await _dbContext.Alerts.AsNoTracking().OrderByDescending(a => a.Timestamp)
-            .ProjectTo<AlertSummaryDto>(_mapper.ConfigurationProvider).ToListAsync();
+    public async Task<PagedResult<AlertSummaryDto>> GetAllAlertsSummaryAsync(PaginationQueryParameters queryParams)
+    {
+        var query = _dbContext.Alerts.AsNoTracking();
+
+        //фильтрацию по статусу или качеству
+        //if (!string.IsNullOrWhiteSpace(queryParams.SearchTerm)) ...
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(a => a.Timestamp)
+            .Skip((queryParams.PageNumber - 1) * queryParams.PageSize)
+            .Take(queryParams.PageSize)
+            .ProjectTo<AlertSummaryDto>(_mapper.ConfigurationProvider)
+            .ToListAsync();
+
+        return new PagedResult<AlertSummaryDto>
+        {
+            Items = items,
+            PageNumber = queryParams.PageNumber,
+            PageSize = queryParams.PageSize,
+            TotalCount = totalCount
+        };
+    }
 
     public async Task<AlertDetailsDto?> GetAlertDetailsByIdAsync(Guid id)
         => await _dbContext.Alerts.AsNoTracking().Where(a => a.Id == id)

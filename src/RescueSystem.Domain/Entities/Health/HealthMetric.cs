@@ -8,6 +8,8 @@ public class HealthMetric
     public double? Pulse { get; set; }
     public double? BodyTemperature { get; set; }
 
+    public string? RawDataJson { get; set; }
+
     public Guid? AlertId { get; set; }
     public Alert? Alert { get; set; }
 }

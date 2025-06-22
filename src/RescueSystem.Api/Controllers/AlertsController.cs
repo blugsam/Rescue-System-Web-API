@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RescueSystem.Application.Services.AlertService;
 using RescueSystem.Contracts.Contracts.Requests;
 using RescueSystem.Contracts.Contracts.Responses;
-using RescueSystem.Application.Services.AlertService;
+using RescueSystem.Domain.Entities;
 
 namespace RescueSystem.Api.Controllers;
 
@@ -15,10 +16,10 @@ public class AlertsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<AlertSummaryDto>>> GetAll()
+    public async Task<ActionResult<PagedResult<AlertSummaryDto>>> GetAll([FromQuery] PaginationQueryParameters queryParams)
     {
-        var list = await _alertService.GetAllAlertsSummaryAsync();
-        return Ok(list);
+        var pagedResult = await _alertService.GetAllAlertsSummaryAsync(queryParams);
+        return Ok(pagedResult);
     }
 
     [HttpGet("{id:guid}")]
