@@ -1,5 +1,4 @@
 using FluentValidation;
-using Microsoft.Extensions.Configuration;
 using RescueSystem.Api.Extensions;
 using RescueSystem.Api.Hubs;
 using RescueSystem.Api.Services;
@@ -8,22 +7,30 @@ using RescueSystem.Application.Validation;
 using RescueSystem.Infrastructure.Extensions;
 using Serilog;
 
-//var configuration = new ConfigurationBuilder()
-//    .SetBasePath(Directory.GetCurrentDirectory())
-//    .AddJsonFile("appsettings.json")
-//    .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", true)
-//    .Build();
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json")
+    .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", true)
+    .Build();
 
 Log.Logger = new LoggerConfiguration()
-    //.ReadFrom.Configuration(configuration)
+    .ReadFrom.Configuration(configuration)
     .WriteTo.Console()
     .CreateLogger();
-Log.Information("Starting Rescue System API host.");
+//Log.Information("Starting Rescue System API host.");
 
 try
 {
     var builder = WebApplication.CreateBuilder(args);
-    builder.Services.AddSerilog();
+
+    builder.Services.AddSerilog((services, lc) => lc
+        .ReadFrom.Configuration(builder.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext());
+        //.WriteTo.Console(new ExpressionTemplate(
+        //    // Include trace and span ids when present.
+        //    "[{@t:HH:mm:ss} {@l:u3}{#if @tr is not null} ({substring(@tr,0,4)}:{substring(@sp,0,4)}){#end}] {@m}\n{@x}",
+        //    theme: TemplateTheme.Code)));
 
     builder.Services.AddPresentation();
     builder.Services.AddInfrastructure(builder.Configuration);
