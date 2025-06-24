@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using RescueSystem.Api.Exceptions;
 using RescueSystem.Application.Exceptions;
 
-public static class ExceptionHandlerExtensions
+namespace RescueSystem.Api.Extensions;
+
+public static class ExceptionHandlerExtension
 {
     public static IApplicationBuilder UseApiExceptionHandler(this IApplicationBuilder app)
     {

@@ -30,7 +30,7 @@ public class BraceletService : IBraceletService
     {
         if (await _db.Bracelets.AnyAsync(b => b.SerialNumber == request.SerialNumber))
         {
-            throw new BadRequestException($"Браслет с серийным номером '{request.SerialNumber}' уже существует.");
+            throw new BadRequestException($"Bracelet with serial '{request.SerialNumber}' already exist.");
         }
 
         var bracelet = _mapper.Map<Bracelet>(request);
@@ -40,7 +40,7 @@ public class BraceletService : IBraceletService
         _db.Bracelets.Add(bracelet);
         await _db.SaveChangesAsync();
 
-        _logger.LogInformation("Создан новый браслет. ID: {BraceletId}, Serial: {SerialNumber}", bracelet.Id, bracelet.SerialNumber);
+        _logger.LogInformation("Created new bracelet. ID: {BraceletId}, Serial: {SerialNumber}", bracelet.Id, bracelet.SerialNumber);
 
         return await _db.Bracelets
             .AsNoTracking()
@@ -120,43 +120,43 @@ public class BraceletService : IBraceletService
     {
         var bracelet = await _db.Bracelets.FirstOrDefaultAsync(b => b.Id == braceletId);
         if (bracelet == null)
-            throw new NotFoundException($"Браслет с ID '{braceletId}' не найден.");
+            throw new NotFoundException($"Bracelet with ID '{braceletId}' not found.");
 
         if (!Enum.TryParse<BraceletStatus>(request.Status, true, out var newStatus))
-            throw new BadRequestException($"Недопустимое значение статуса: '{request.Status}'.");
+            throw new BadRequestException($"Forbidden status value: '{request.Status}'.");
 
         var oldStatus = bracelet.Status;
         bracelet.Status = newStatus;
 
         await _db.SaveChangesAsync();
-        _logger.LogInformation("Статус браслета {BraceletId} изменен с {OldStatus} на {NewStatus}", bracelet.Id, oldStatus, newStatus);
+        _logger.LogInformation("Bracelet with ID {BraceletId} status changed from {OldStatus} to {NewStatus}", bracelet.Id, oldStatus, newStatus);
     }
 
     public async Task DeleteBraceletAsync(Guid braceletId)
     {
         var bracelet = await _db.Bracelets.FirstOrDefaultAsync(b => b.Id == braceletId);
         if (bracelet == null)
-            throw new NotFoundException($"Браслет с ID '{braceletId}' не найден.");
+            throw new NotFoundException($"Bracelet with ID '{braceletId}' not found.");
 
         if (bracelet.UserId.HasValue)
-            throw new BadRequestException("Нельзя удалить браслет, который назначен пользователю.");
+            throw new BadRequestException("Can't delete bracelet, which attached to user.");
 
         _db.Bracelets.Remove(bracelet);
         await _db.SaveChangesAsync();
-        _logger.LogWarning("Браслет {BraceletId} (Serial: {SerialNumber}) был удален.", bracelet.Id, bracelet.SerialNumber);
+        _logger.LogWarning("Bracelet with ID {BraceletId} (Serial: {SerialNumber}) deleted.", bracelet.Id, bracelet.SerialNumber);
     }
 
     public async Task AssignUserToBraceletAsync(Guid braceletId, Guid userId)
     {
         var bracelet = await _db.Bracelets.FirstOrDefaultAsync(b => b.Id == braceletId);
         if (bracelet == null)
-            throw new NotFoundException($"Браслет с ID '{braceletId}' не найден.");
+            throw new NotFoundException($"Bracelet with ID '{braceletId}' not found");
 
         if (!await _db.Users.AnyAsync(u => u.Id == userId))
-            throw new NotFoundException($"Пользователь с ID '{userId}' не найден.");
+            throw new NotFoundException($"User with ID '{userId}' not found.");
 
         if (bracelet.UserId.HasValue)
-            throw new BadRequestException("Этот браслет уже назначен другому пользователю.");
+            throw new BadRequestException("This bracelet already attached to another user.");
 
         if (await _db.Bracelets.AnyAsync(b => b.UserId == userId))
             throw new BadRequestException("У этого пользователя уже есть другой браслет.");
@@ -164,14 +164,14 @@ public class BraceletService : IBraceletService
         bracelet.UserId = userId;
         bracelet.Status = BraceletStatus.Active;
         await _db.SaveChangesAsync();
-        _logger.LogInformation("Пользователь {UserId} назначен браслету {BraceletId}", userId, braceletId);
+        _logger.LogInformation("User with ID {UserId} attached to bracelet with ID {BraceletId}", userId, braceletId);
     }
 
     public async Task UnassignUserFromBraceletAsync(Guid braceletId)
     {
         var bracelet = await _db.Bracelets.FirstOrDefaultAsync(b => b.Id == braceletId);
         if (bracelet == null)
-            throw new NotFoundException($"Браслет с ID '{braceletId}' не найден.");
+            throw new NotFoundException($"Bracelt with ID '{braceletId}' not found.");
 
         if (!bracelet.UserId.HasValue)
             return;
@@ -180,6 +180,6 @@ public class BraceletService : IBraceletService
         bracelet.UserId = null;
         bracelet.Status = BraceletStatus.Inactive;
         await _db.SaveChangesAsync();
-        _logger.LogInformation("Пользователь {UserId} отвязан от браслета {BraceletId}", userId, braceletId);
+        _logger.LogInformation("User with ID {UserId} unattached from bracelet {BraceletId}", userId, braceletId);
     }
 }

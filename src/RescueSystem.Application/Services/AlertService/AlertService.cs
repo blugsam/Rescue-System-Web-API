@@ -166,14 +166,14 @@ public class AlertService : IAlertService
 
         if (alert == null)
         {
-            throw new NotFoundException($"Тревога с ID '{alertId}' не найдена.");
+            throw new NotFoundException($"Alert with ID '{alertId}' not found.");
         }
 
         _dbContext.Alerts.Remove(alert);
 
         await _dbContext.SaveChangesAsync();
 
-        _logger.LogWarning("Тревога {AlertId} была удалена.", alertId);
+        _logger.LogWarning("Alert with ID {AlertId} was deleted.", alertId);
     }
 
     public async Task<PagedResult<AlertSummaryDto>> GetAllAlertsSummaryAsync(PaginationQueryParameters queryParams)

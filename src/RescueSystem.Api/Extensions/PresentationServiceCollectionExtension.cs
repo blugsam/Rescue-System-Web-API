@@ -1,6 +1,6 @@
 ﻿namespace RescueSystem.Api.Extensions;
 
-public static class PresentationServiceCollectionExtensions
+public static class PresentationServiceCollectionExtension
 {
     public static IServiceCollection AddPresentation(this IServiceCollection services)
     {
