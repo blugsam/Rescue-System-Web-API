@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   db:
     image: postgres:16
@@ -14,5 +12,20 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  api:
+    container_name: rescue_api
+    build:
+      context: .
+      dockerfile: ./src/RescueSystem.Api/Dockerfile
+    restart: always
+    ports:
+      - "7043:8080" 
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+    depends_on:
+      - db
+
 volumes:
   pgdata:
+    driver: local

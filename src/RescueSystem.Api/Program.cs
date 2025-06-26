@@ -1,4 +1,3 @@
-using FluentValidation;
 using RescueSystem.Api.Extensions;
 using RescueSystem.Api.Hubs;
 using RescueSystem.Api.Services;
@@ -6,6 +5,7 @@ using RescueSystem.Application.Interfaces;
 using RescueSystem.Application.Validation;
 using RescueSystem.Infrastructure.Extensions;
 using Serilog;
+using FluentValidation;
 
 try
 {
