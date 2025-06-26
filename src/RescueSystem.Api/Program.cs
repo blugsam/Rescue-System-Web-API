@@ -27,11 +27,10 @@ try
     app.UseSerilogRequestLogging();
     app.MapGet("/", () => "Rescue System API host succesfuly started.");
     app.UseApiExceptionHandler();
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
+
+    app.UseSwagger();
+    app.UseSwaggerUI();
+
     app.UseHttpsRedirection();
     app.UseStaticFiles();
     app.UseAuthorization();
