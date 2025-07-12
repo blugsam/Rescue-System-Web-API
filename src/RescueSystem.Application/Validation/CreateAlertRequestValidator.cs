@@ -8,18 +8,18 @@ public class CreateAlertRequestValidator : AbstractValidator<CreateAlertRequest>
     public CreateAlertRequestValidator()
     {
         RuleFor(x => x.SerialNumber)
-            .NotEmpty().WithMessage("Серийный номер обязателен.")
-            .Matches("^[A-Za-z0-9_-]+$").WithMessage("Серийный номер содержит недопустимые символы.");
+            .NotEmpty().WithMessage("Serial number is required.")
+            .Matches("^[A-Za-z0-9_-]+$").WithMessage("Serial number contains invalid characters.");
 
         RuleFor(x => x.Latitude)
-            .InclusiveBetween(-90.0, 90.0).WithMessage("Широта должна быть в диапазоне от -90 до 90.");
+            .InclusiveBetween(-90.0, 90.0).WithMessage("Latitude must be between -90 and 90.");
 
         RuleFor(x => x.Longitude)
-            .InclusiveBetween(-180.0, 180.0).WithMessage("Долгота должна быть в диапазоне от -180 до 180.");
+            .InclusiveBetween(-180.0, 180.0).WithMessage("Longitude must be between -180 and 180.");
 
         RuleFor(x => x.HealthMetrics)
             .NotNull()
-            .WithMessage("Показатели здоровья обязательны для автоматических сигналов тревоги.")
+            .WithMessage("Health metrics are required for automatic alarm signals.")
             .When(x => !x.IsSosSignal);
 
         RuleFor(x => x.HealthMetrics)

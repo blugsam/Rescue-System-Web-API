@@ -17,7 +17,6 @@ public class UsersController : ControllerBase
         _userService = userService;
     }
 
-    /// <summary>Создать нового пользователя.</summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -27,7 +26,6 @@ public class UsersController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = createdUser.Id }, createdUser);
     }
 
-    /// <summary>Получить информацию о пользователе по ID.</summary>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -39,7 +37,6 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
-    /// <summary>Получить список пользователей с пагинацией.</summary>
     [HttpGet]
     public async Task<ActionResult<PagedResult<UserSummaryDto>>> GetAll([FromQuery] PaginationQueryParameters queryParams)
     {
@@ -47,7 +44,6 @@ public class UsersController : ControllerBase
         return Ok(pagedResult);
     }
 
-    /// <summary>Обновить данные пользователя.</summary>
     [HttpPut("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -58,7 +54,6 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>Удалить пользователя.</summary>
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -17,7 +17,6 @@ public class BraceletsController : ControllerBase
         _braceletService = braceletService;
     }
 
-    /// <summary>Создать новый браслет.</summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -27,7 +26,6 @@ public class BraceletsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = createdBracelet.Id }, createdBracelet);
     }
 
-    /// <summary>Получить список браслетов с пагинацией и опциональными фильтрами.</summary>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResult<BraceletDto>>> GetAll([FromQuery] PaginationQueryParameters queryParams)
@@ -36,7 +34,6 @@ public class BraceletsController : ControllerBase
         return Ok(paged);
     }
 
-    /// <summary>Получить детали конкретного браслета.</summary>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -48,7 +45,6 @@ public class BraceletsController : ControllerBase
         return Ok(dto);
     }
 
-    /// <summary>Удалить браслет. Нельзя удалять, если браслет привязан или активен.</summary>
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -59,7 +55,6 @@ public class BraceletsController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>Обновить статус браслета.</summary>
     [HttpPut("{id:guid}/status")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -70,7 +65,6 @@ public class BraceletsController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>Привязать браслет к пользователю.</summary>
     [HttpPost("{id:guid}/assignment")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -81,7 +75,6 @@ public class BraceletsController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>Отвязать браслет от пользователя.</summary>
     [HttpDelete("{id:guid}/assignment")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
