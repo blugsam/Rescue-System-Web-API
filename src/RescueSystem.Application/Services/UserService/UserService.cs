@@ -32,8 +32,10 @@ public class UserService : IUserService
         await _db.SaveChangesAsync();
         _logger.LogInformation("New user created. ID: {UserId}", user.Id);
 
-        return await _db.Users.AsNoTracking().Where(u => u.Id == user.Id)
-            .ProjectTo<UserDetailsDto>(_mapper.ConfigurationProvider).SingleAsync();
+        return await _db.Users.AsNoTracking()
+            .Where(u => u.Id == user.Id)
+            .ProjectTo<UserDetailsDto>(_mapper.ConfigurationProvider)
+            .SingleAsync();
     }
 
     public async Task<UserDetailsDto?> GetUserByIdAsync(Guid userId)
@@ -57,15 +59,16 @@ public class UserService : IUserService
             var pattern = $"%{queryParams.SearchTerm}%";
             query = query.Where(u => EF.Functions.ILike(u.FullName, pattern));
 
-            var lowerTerm = queryParams.SearchTerm.ToLowerInvariant();
-            query = query.Where(u => u.FullName.ToLower().Contains(lowerTerm));
+            //var lowerTerm = queryParams.SearchTerm.ToLowerInvariant();
+            //query = query.Where(u => u.FullName.ToLower().Contains(lowerTerm));
         }
 
         var totalCount = await query.CountAsync();
 
         if (!string.IsNullOrEmpty(queryParams.SortBy))
         {
-            switch (queryParams.SortBy.Trim().ToLowerInvariant())
+            var sortBy = queryParams.SortBy.Trim().ToLowerInvariant();
+            switch (sortBy)
             {
                 case "fullname":
                     query = queryParams.SortDescending
@@ -115,7 +118,7 @@ public class UserService : IUserService
 
         _mapper.Map(request, user);
         await _db.SaveChangesAsync();
-        _logger.LogInformation("Данные пользователя {UserId} обновлены.", userId);
+        _logger.LogInformation("User '{UserId}' data updated.", userId);
 
         return await _db.Users.AsNoTracking().Where(u => u.Id == userId)
             .ProjectTo<UserDetailsDto>(_mapper.ConfigurationProvider).SingleAsync();
@@ -129,7 +132,7 @@ public class UserService : IUserService
 
         if (user.Bracelet != null)
         {
-            throw new BadRequestException("You can't delete user with ussigned bracelet.");
+            throw new BadRequestException("You can't delete user with assigned bracelet.");
         }
 
         _db.Users.Remove(user);
