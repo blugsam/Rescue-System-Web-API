@@ -30,7 +30,7 @@ public class UserService : IUserService
         user.Id = Guid.NewGuid();
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
-        _logger.LogInformation("Создан новый пользователь. ID: {UserId}", user.Id);
+        _logger.LogInformation("New user created. ID: {UserId}", user.Id);
 
         return await _db.Users.AsNoTracking().Where(u => u.Id == user.Id)
             .ProjectTo<UserDetailsDto>(_mapper.ConfigurationProvider).SingleAsync();
@@ -47,14 +47,11 @@ public class UserService : IUserService
 
     public async Task<PagedResult<UserSummaryDto>> GetAllUsersAsync(PaginationQueryParameters queryParams)
     {
-        // 1. Поскольку PageNumber и PageSize уже нормализуются в сеттерах PaginationQueryParameters,
-        //    можем использовать их напрямую:
         int pageNumber = queryParams.PageNumber;
         int pageSize = queryParams.PageSize;
 
         IQueryable<User> query = _db.Users.AsNoTracking();
 
-        // 2. Фильтрация по SearchTerm (SearchTerm уже Trim и null, если пустая)
         if (!string.IsNullOrEmpty(queryParams.SearchTerm))
         {
             var pattern = $"%{queryParams.SearchTerm}%";
@@ -110,12 +107,11 @@ public class UserService : IUserService
     }
 
 
-
     public async Task<UserDetailsDto> UpdateUserAsync(Guid userId, UpdateUserRequest request)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
-            throw new NotFoundException($"Пользователь с ID '{userId}' не найден.");
+            throw new NotFoundException($"User '{userId}' has not found.");
 
         _mapper.Map(request, user);
         await _db.SaveChangesAsync();
@@ -129,15 +125,15 @@ public class UserService : IUserService
     {
         var user = await _db.Users.Include(u => u.Bracelet).FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
-            throw new NotFoundException($"Пользователь с ID '{userId}' не найден.");
+            throw new NotFoundException($"User '{userId}' has not found.");
 
         if (user.Bracelet != null)
         {
-            throw new BadRequestException("Нельзя удалить пользователя, которому назначен браслет. Сначала отвяжите браслет.");
+            throw new BadRequestException("You can't delete user with ussigned bracelet.");
         }
 
         _db.Users.Remove(user);
         await _db.SaveChangesAsync();
-        _logger.LogWarning("Пользователь {UserId} был удален.", user.Id);
+        _logger.LogWarning("User '{UserId}' has been deleted.", user.Id);
     }
 }

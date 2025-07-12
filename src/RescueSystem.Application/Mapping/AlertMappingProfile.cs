@@ -53,8 +53,8 @@ public class AlertMappingProfile : Profile
             .ForMember(dest => dest.Triggers,
                        opt => opt.MapFrom(src => src.Triggers))
             .ForMember(dest => dest.UserFullName,
-                       opt => opt.MapFrom(src => src.Bracelet.User.FullName))
+                       opt => opt.MapFrom(src => src.Bracelet != null && src.Bracelet.User != null ? src.Bracelet.User.FullName : string.Empty))
             .ForMember(dest => dest.BraceletSerialNumber,
-                       opt => opt.MapFrom(src => src.Bracelet.SerialNumber));
+                       opt => opt.MapFrom(src => src.Bracelet != null ? src.Bracelet.SerialNumber : string.Empty));
     }
 }
