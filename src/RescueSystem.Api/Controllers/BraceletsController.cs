@@ -20,7 +20,7 @@ public class BraceletsController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<BraceletDetailsDto>> Create([FromBody] CreateBraceletRequest request)
+    public async Task<ActionResult<BraceletDetailsDto>> Create([FromBody] CreateBraceletRequestDto request)
     {
         var createdBracelet = await _braceletService.CreateBraceletAsync(request);
         return CreatedAtAction(nameof(GetById), new { id = createdBracelet.Id }, createdBracelet);
@@ -59,7 +59,7 @@ public class BraceletsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateBraceletRequest request)
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateBraceletRequestDto request)
     {
         await _braceletService.UpdateBraceletStatusAsync(id, request);
         return NoContent();

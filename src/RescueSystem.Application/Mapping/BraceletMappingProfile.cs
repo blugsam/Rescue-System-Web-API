@@ -9,13 +9,12 @@ public class BraceletMappingProfile : Profile
 {
     public BraceletMappingProfile()
     {
-        CreateMap<CreateBraceletRequest, Bracelet>();
+        CreateMap<CreateBraceletRequestDto, Bracelet>();
 
         CreateMap<Bracelet, BraceletDto>()
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
 
         CreateMap<Bracelet, BraceletDetailsDto>()
             .ForMember(dest => dest.AssignedUser, opt => opt.MapFrom(src => src.User));
-
     }
 }

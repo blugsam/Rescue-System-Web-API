@@ -26,7 +26,7 @@ public class BraceletService : IBraceletService
         _logger = logger;
     }
 
-    public async Task<BraceletDetailsDto> CreateBraceletAsync(CreateBraceletRequest request)
+    public async Task<BraceletDetailsDto> CreateBraceletAsync(CreateBraceletRequestDto request)
     {
         if (await _db.Bracelets.AnyAsync(b => b.SerialNumber == request.SerialNumber))
         {
@@ -116,7 +116,7 @@ public class BraceletService : IBraceletService
         };
     }
 
-    public async Task UpdateBraceletStatusAsync(Guid braceletId, UpdateBraceletRequest request)
+    public async Task UpdateBraceletStatusAsync(Guid braceletId, UpdateBraceletRequestDto request)
     {
         var bracelet = await _db.Bracelets.FirstOrDefaultAsync(b => b.Id == braceletId);
         if (bracelet == null)

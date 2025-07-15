@@ -3,7 +3,7 @@ using RescueSystem.Contracts.Contracts.Requests;
 
 namespace RescueSystem.Application.Validation;
 
-public class CreateAlertRequestValidator : AbstractValidator<CreateAlertRequest>
+public class CreateAlertRequestValidator : AbstractValidator<CreateAlertRequestDto>
 {
     public CreateAlertRequestValidator()
     {

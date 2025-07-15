@@ -21,10 +21,10 @@ public class AlertService : IAlertService
     private readonly RescueDbContext _dbContext;
     private readonly IMapper _mapper;
     private readonly ILogger<AlertService> _logger;
-    private readonly IValidator<CreateAlertRequest> _validator;
+    private readonly IValidator<CreateAlertRequestDto> _validator;
     private readonly IAlertNotifier _alertNotifier;
 
-    public AlertService(RescueDbContext dbContext, IMapper mapper, IValidator<CreateAlertRequest> validator, ILogger<AlertService> logger, IAlertNotifier alertNotifier)
+    public AlertService(RescueDbContext dbContext, IMapper mapper, IValidator<CreateAlertRequestDto> validator, ILogger<AlertService> logger, IAlertNotifier alertNotifier)
     {
         _dbContext = dbContext;
         _mapper = mapper;
@@ -33,7 +33,7 @@ public class AlertService : IAlertService
         _alertNotifier = alertNotifier;
     }
 
-    public async Task<AlertDetailsDto> CreateAlertFromSignalAsync(CreateAlertRequest request)
+    public async Task<AlertDetailsDto> CreateAlertFromSignalAsync(CreateAlertRequestDto request)
     {
         var bracelet = await _dbContext.Bracelets
             .Include(b => b.User).ThenInclude(u => u.HealthProfile)
@@ -99,7 +99,7 @@ public class AlertService : IAlertService
             };
 
             bool pulseIsInvalid = validationResult.Errors
-                .Any(e => e.PropertyName == $"{nameof(CreateAlertRequest.HealthMetrics)}.{nameof(HealthMetricsRequestDto.Pulse)}");
+                .Any(e => e.PropertyName == $"{nameof(CreateAlertRequestDto.HealthMetrics)}.{nameof(HealthMetricsRequestDto.Pulse)}");
 
             if (!pulseIsInvalid && request.HealthMetrics.Pulse.HasValue)
             {
@@ -107,7 +107,7 @@ public class AlertService : IAlertService
             }
 
             bool tempIsInvalid = validationResult.Errors
-                .Any(e => e.PropertyName == $"{nameof(CreateAlertRequest.HealthMetrics)}.{nameof(HealthMetricsRequestDto.BodyTemperature)}");
+                .Any(e => e.PropertyName == $"{nameof(CreateAlertRequestDto.HealthMetrics)}.{nameof(HealthMetricsRequestDto.BodyTemperature)}");
 
             if (!tempIsInvalid && request.HealthMetrics.BodyTemperature.HasValue)
             {
@@ -133,7 +133,7 @@ public class AlertService : IAlertService
         return _mapper.Map<AlertDetailsDto>(alert);
     }
 
-    private ICollection<AlertTrigger> DetermineAlertTriggers(CreateAlertRequest request, HealthProfileThresholds userThresholds, HealthProfileThresholds defaultThresholds)
+    private ICollection<AlertTrigger> DetermineAlertTriggers(CreateAlertRequestDto request, HealthProfileThresholds userThresholds, HealthProfileThresholds defaultThresholds)
     {
         var triggers = new List<AlertTrigger>();
         if (request.IsSosSignal)

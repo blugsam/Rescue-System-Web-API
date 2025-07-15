@@ -24,7 +24,7 @@ public class UserService : IUserService
         _logger = logger;
     }
 
-    public async Task<UserDetailsDto> CreateUserAsync(CreateUserRequest request)
+    public async Task<UserDetailsDto> CreateUserAsync(CreateUserRequestDto request)
     {
         var user = _mapper.Map<User>(request);
         user.Id = Guid.NewGuid();
@@ -110,7 +110,7 @@ public class UserService : IUserService
     }
 
 
-    public async Task<UserDetailsDto> UpdateUserAsync(Guid userId, UpdateUserRequest request)
+    public async Task<UserDetailsDto> UpdateUserAsync(Guid userId, UpdateUserRequestDto request)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)

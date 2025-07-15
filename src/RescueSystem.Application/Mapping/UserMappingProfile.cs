@@ -9,9 +9,9 @@ public class UserMappingProfile : Profile
 {
     public UserMappingProfile()
     {
-        CreateMap<CreateUserRequest, User>();
+        CreateMap<CreateUserRequestDto, User>();
 
-        CreateMap<UpdateUserRequest, User>();
+        CreateMap<UpdateUserRequestDto, User>();
 
         CreateMap<User, UserSummaryDto>();
 

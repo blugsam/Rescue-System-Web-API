@@ -8,7 +8,7 @@
 
   <ItemGroup>
 	  <!-- Domain model dependency via NuGet -->
-    <PackageReference Include="RescueSystem.Contracts" Version="1.0.2" />
+    <PackageReference Include="RescueSystem.Contracts" Version="1.1.0" />
   </ItemGroup>
 
 </Project>

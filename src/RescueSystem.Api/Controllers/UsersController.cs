@@ -20,7 +20,7 @@ public class UsersController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<UserDetailsDto>> Create([FromBody] CreateUserRequest request)
+    public async Task<ActionResult<UserDetailsDto>> Create([FromBody] CreateUserRequestDto request)
     {
         var createdUser = await _userService.CreateUserAsync(request);
         return CreatedAtAction(nameof(GetById), new { id = createdUser.Id }, createdUser);
@@ -48,7 +48,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserRequest request)
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserRequestDto request)
     {
         await _userService.UpdateUserAsync(id, request);
         return NoContent();

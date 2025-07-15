@@ -6,9 +6,9 @@ namespace RescueSystem.Application.Services.UserService;
 
 public interface IUserService
 {
-    Task<UserDetailsDto> CreateUserAsync(CreateUserRequest request);
+    Task<UserDetailsDto> CreateUserAsync(CreateUserRequestDto request);
 
-    Task<UserDetailsDto> UpdateUserAsync(Guid userId, UpdateUserRequest request);
+    Task<UserDetailsDto> UpdateUserAsync(Guid userId, UpdateUserRequestDto request);
 
     Task DeleteUserAsync(Guid userId);
 
