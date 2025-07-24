@@ -7,12 +7,19 @@ using RescueSystem.Infrastructure.Extensions;
 using Serilog;
 using FluentValidation;
 
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
+
 try
 {
     var builder = WebApplication.CreateBuilder(args);
     var configuration = builder.Configuration;
 
-    builder.AddSerilogLogging();
+    builder.Host.UseSerilog((ctx, services, lc) =>
+        lc.ReadFrom.Configuration(ctx.Configuration)
+          .ReadFrom.Services(services)
+          .Enrich.FromLogContext());
 
     builder.Services.AddPresentation();
     builder.Services.AddInfrastructure(configuration);
