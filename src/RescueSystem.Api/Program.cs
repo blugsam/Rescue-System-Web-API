@@ -10,11 +10,12 @@ using FluentValidation;
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+    var configuration = builder.Configuration;
 
     builder.AddSerilogLogging();
 
     builder.Services.AddPresentation();
-    builder.Services.AddInfrastructure(builder.Configuration);
+    builder.Services.AddInfrastructure(configuration);
     builder.Services.AddApplication();
     builder.Services.AddValidatorsFromAssemblyContaining<CreateAlertRequestValidator>();
     builder.Services.AddScoped<IAlertNotifier, SignalRAlertNotifier>();
