@@ -18,13 +18,13 @@ namespace RescueSystem.Application.Services.AlertService;
 
 public class AlertService : IAlertService
 {
-    private readonly RescueDbContext _dbContext;
+    private readonly ApplicationDbContext _dbContext;
     private readonly IMapper _mapper;
     private readonly ILogger<AlertService> _logger;
     private readonly IValidator<CreateAlertRequestDto> _validator;
     private readonly IAlertNotifier _alertNotifier;
 
-    public AlertService(RescueDbContext dbContext, IMapper mapper, IValidator<CreateAlertRequestDto> validator, ILogger<AlertService> logger, IAlertNotifier alertNotifier)
+    public AlertService(ApplicationDbContext dbContext, IMapper mapper, IValidator<CreateAlertRequestDto> validator, ILogger<AlertService> logger, IAlertNotifier alertNotifier)
     {
         _dbContext = dbContext;
         _mapper = mapper;

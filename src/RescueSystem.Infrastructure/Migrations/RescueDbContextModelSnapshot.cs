@@ -10,7 +10,7 @@ using RescueSystem.Infrastructure;
 
 namespace RescueSystem.Infrastructure.Migrations
 {
-    [DbContext(typeof(RescueDbContext))]
+    [DbContext(typeof(ApplicationDbContext))]
     partial class RescueDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

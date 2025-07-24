@@ -11,7 +11,7 @@ using RescueSystem.Infrastructure;
 
 namespace RescueSystem.Infrastructure.Migrations
 {
-    [DbContext(typeof(RescueDbContext))]
+    [DbContext(typeof(ApplicationDbContext))]
     [Migration("20250609215205_FewMoreControllers")]
     partial class FewMoreControllers
     {

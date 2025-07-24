@@ -6,9 +6,9 @@ using RescueSystem.Domain.Entities.Health;
 
 namespace RescueSystem.Infrastructure;
 
-public class RescueDbContext : DbContext
+public class ApplicationDbContext : DbContext
 {
-    public RescueDbContext(DbContextOptions<RescueDbContext> options)
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
@@ -23,6 +23,6 @@ public class RescueDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(RescueDbContext).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 }

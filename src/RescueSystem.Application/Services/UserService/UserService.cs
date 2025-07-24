@@ -13,11 +13,11 @@ namespace RescueSystem.Application.Services.UserService;
 
 public class UserService : IUserService
 {
-    private readonly RescueDbContext _db;
+    private readonly ApplicationDbContext _db;
     private readonly IMapper _mapper;
     private readonly ILogger<UserService> _logger;
 
-    public UserService(RescueDbContext db, IMapper mapper, ILogger<UserService> logger)
+    public UserService(ApplicationDbContext db, IMapper mapper, ILogger<UserService> logger)
     {
         _db = db;
         _mapper = mapper;

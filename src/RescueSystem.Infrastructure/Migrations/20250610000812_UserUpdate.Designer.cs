@@ -11,7 +11,7 @@ using RescueSystem.Infrastructure;
 
 namespace RescueSystem.Infrastructure.Migrations
 {
-    [DbContext(typeof(RescueDbContext))]
+    [DbContext(typeof(ApplicationDbContext))]
     [Migration("20250610000812_UserUpdate")]
     partial class UserUpdate
     {

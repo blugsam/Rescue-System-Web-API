@@ -15,11 +15,11 @@ namespace RescueSystem.Application.Services.BraceletService;
 
 public class BraceletService : IBraceletService
 {
-    private readonly RescueDbContext _db;
+    private readonly ApplicationDbContext _db;
     private readonly IMapper _mapper;
     private readonly ILogger<BraceletService> _logger;
 
-    public BraceletService(RescueDbContext db, IMapper mapper, ILogger<BraceletService> logger)
+    public BraceletService(ApplicationDbContext db, IMapper mapper, ILogger<BraceletService> logger)
     {
         _db = db;
         _mapper = mapper;
