@@ -12,10 +12,6 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     builder.AddSerilogLogging();
-    builder.Host.UseSerilog((ctx, services, lc) =>
-        lc.ReadFrom.Configuration(ctx.Configuration)
-          .ReadFrom.Services(services)
-          .Enrich.FromLogContext());
 
     builder.Services.AddPresentation();
     builder.Services.AddInfrastructure(builder.Configuration);
