@@ -583,3 +583,5 @@ FodyWeavers.xsd
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,csharp
 /src/RescueSystem.Application/Services/IAlertService.cs
 /src/RescueSystem.Application/Services/AlertService.cs
+/src/RescueSystem.Api/appsettings.Development.json
+/src/RescueSystem.Api/appsettings.Production.json
