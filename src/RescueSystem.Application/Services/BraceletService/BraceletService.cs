@@ -1,8 +1,4 @@
-﻿using RescueSystem.Domain.Interfaces;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using RescueSystem.Api.Exceptions;
 using RescueSystem.Contracts.Contracts.Requests;
 using RescueSystem.Contracts.Contracts.Responses;
@@ -10,6 +6,8 @@ using RescueSystem.Contracts.Contracts.Enums;
 using RescueSystem.Application.Exceptions;
 using RescueSystem.Domain.Entities;
 using RescueSystem.Domain.Entities.Bracelets;
+using RescueSystem.Domain.Interfaces;
+using RescueSystem.Application.Mapping;
 
 namespace RescueSystem.Application.Services.BraceletService;
 
@@ -17,14 +15,12 @@ public class BraceletService : IBraceletService
 {
     private readonly IRepository<Bracelet> _braceletRepository;
     private readonly IRepository<User> _userRepository;
-    private readonly IMapper _mapper;
     private readonly ILogger<BraceletService> _logger;
 
-    public BraceletService(IRepository<Bracelet> braceletRepository, IRepository<User> userRepository, IMapper mapper, ILogger<BraceletService> logger)
+    public BraceletService(IRepository<Bracelet> braceletRepository, IRepository<User> userRepository, ILogger<BraceletService> logger)
     {
         _braceletRepository = braceletRepository;
         _userRepository = userRepository;
-        _mapper = mapper;
         _logger = logger;
     }
 
@@ -35,7 +31,7 @@ public class BraceletService : IBraceletService
             throw new BadRequestException($"Bracelet with serial '{request.SerialNumber}' already exist.");
         }
 
-        var bracelet = _mapper.Map<Bracelet>(request);
+        var bracelet = request.ToEntity();
         bracelet.Id = Guid.NewGuid();
         bracelet.Status = BraceletStatus.Inactive;
 
@@ -44,13 +40,13 @@ public class BraceletService : IBraceletService
 
         _logger.LogInformation("Created new bracelet. ID: {BraceletId}, Serial: {SerialNumber}", bracelet.Id, bracelet.SerialNumber);
 
-        return _mapper.Map<BraceletDetailsDto>(bracelet);
+        return bracelet.ToDetailsDto();
     }
 
     public async Task<BraceletDetailsDto?> GetBraceletByIdAsync(Guid braceletId)
     {
         var bracelet = await _braceletRepository.GetByIdAsync(braceletId);
-        return _mapper.Map<BraceletDetailsDto>(bracelet);
+        return bracelet?.ToDetailsDto();
     }
 
     public async Task<PagedResult<BraceletDto>> GetAllBraceletsAsync(PaginationQueryParameters queryParams)
@@ -97,7 +93,7 @@ public class BraceletService : IBraceletService
             .Take(queryParams.PageSize)
             .ToList();
 
-        var dtos = _mapper.Map<List<BraceletDto>>(items);
+        var dtos = items.Select(i => i.ToDto()).ToList();
 
         return new PagedResult<BraceletDto>
         {

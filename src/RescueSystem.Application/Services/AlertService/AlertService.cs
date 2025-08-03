@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using FluentValidation.Results;
-using AutoMapper;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using RescueSystem.Application.Exceptions;
@@ -14,6 +13,7 @@ using RescueSystem.Domain.Entities;
 using RescueSystem.Domain.Entities.Alerts;
 using RescueSystem.Domain.Entities.Health;
 using RescueSystem.Domain.Interfaces;
+using RescueSystem.Application.Mapping;
 
 namespace RescueSystem.Application.Services.AlertService;
 
@@ -22,7 +22,6 @@ public class AlertService : IAlertService
     private readonly IRepository<Alert> _alertRepository;
     private readonly IRepository<Bracelet> _braceletRepository;
     private readonly IRepository<HealthProfileThresholds> _healthProfileThresholdsRepository;
-    private readonly IMapper _mapper;
     private readonly ILogger<AlertService> _logger;
     private readonly IValidator<CreateAlertRequestDto> _validator;
     private readonly IAlertNotifier _alertNotifier;
@@ -31,7 +30,6 @@ public class AlertService : IAlertService
         IRepository<Alert> alertRepository,
         IRepository<Bracelet> braceletRepository,
         IRepository<HealthProfileThresholds> healthProfileThresholdsRepository,
-        IMapper mapper, 
         IValidator<CreateAlertRequestDto> validator, 
         ILogger<AlertService> logger, 
         IAlertNotifier alertNotifier)
@@ -39,7 +37,6 @@ public class AlertService : IAlertService
         _alertRepository = alertRepository;
         _braceletRepository = braceletRepository;
         _healthProfileThresholdsRepository = healthProfileThresholdsRepository;
-        _mapper = mapper;
         _validator = validator;
         _logger = logger;
         _alertNotifier = alertNotifier;
@@ -61,7 +58,7 @@ public class AlertService : IAlertService
     {
         var validationResult = await _validator.ValidateAsync(request);
 
-        var alert = _mapper.Map<Alert>(request);
+        var alert = request.ToEntity();
         alert.Id = Guid.NewGuid();
         alert.Timestamp = DateTimeOffset.UtcNow;
         alert.Status = AlertProcessingStatus.New;
@@ -93,11 +90,11 @@ public class AlertService : IAlertService
         _logger.LogInformation("Created new alert {AlertId} with quality {QualityLevel}.", alert.Id, alert.QualityLevel);
 
         alert.Bracelet = bracelet;
-        var alertSummary = _mapper.Map<AlertSummaryDto>(alert);
+        var alertSummary = alert.ToSummaryDto();
         await _alertNotifier.NotifyNewAlertAsync(alertSummary);
         _logger.LogInformation("New alert notification {AlertId} sended.", alert.Id);
 
-        return _mapper.Map<AlertDetailsDto>(alert);
+        return alert.ToDetailsDto();
     }
 
     private HealthMetric CreateHealthMetric(CreateAlertRequestDto request, ValidationResult validationResult)
@@ -150,8 +147,8 @@ public class AlertService : IAlertService
         await _alertRepository.AddAsync(grayAlert);
         await _alertRepository.SaveChangesAsync();
 
-        var grayAlertDto = _mapper.Map<AlertDetailsDto>(grayAlert);
-        await _alertNotifier.NotifyNewAlertAsync(_mapper.Map<AlertSummaryDto>(grayAlert));
+        var grayAlertDto = grayAlert.ToDetailsDto();
+        await _alertNotifier.NotifyNewAlertAsync(grayAlert.ToSummaryDto());
         return grayAlertDto;
     }
 
@@ -209,7 +206,7 @@ public class AlertService : IAlertService
             .Take(queryParams.PageSize)
             .ToList();
 
-        var dtos = _mapper.Map<List<AlertSummaryDto>>(items);
+        var dtos = items.Select(i => i.ToSummaryDto()).ToList();
 
         return new PagedResult<AlertSummaryDto>
         {
@@ -223,6 +220,6 @@ public class AlertService : IAlertService
     public async Task<AlertDetailsDto?> GetAlertDetailsByIdAsync(Guid id)
     {
         var alert = await _alertRepository.GetByIdAsync(id);
-        return _mapper.Map<AlertDetailsDto>(alert);
+        return alert?.ToDetailsDto();
     }
 }

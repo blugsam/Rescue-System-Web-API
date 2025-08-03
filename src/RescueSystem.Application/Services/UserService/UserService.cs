@@ -1,42 +1,40 @@
-﻿using AutoMapper;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using RescueSystem.Api.Exceptions;
 using RescueSystem.Contracts.Contracts.Requests;
 using RescueSystem.Contracts.Contracts.Responses;
 using RescueSystem.Application.Exceptions;
 using RescueSystem.Domain.Entities;
 using RescueSystem.Domain.Interfaces;
+using RescueSystem.Application.Mapping;
 
 namespace RescueSystem.Application.Services.UserService;
 
 public class UserService : IUserService
 {
     private readonly IRepository<User> _userRepository;
-    private readonly IMapper _mapper;
     private readonly ILogger<UserService> _logger;
 
-    public UserService(IRepository<User> userRepository, IMapper mapper, ILogger<UserService> logger)
+    public UserService(IRepository<User> userRepository, ILogger<UserService> logger)
     {
         _userRepository = userRepository;
-        _mapper = mapper;
         _logger = logger;
     }
 
     public async Task<UserDetailsDto> CreateUserAsync(CreateUserRequestDto request)
     {
-        var user = _mapper.Map<User>(request);
+        var user = request.ToEntity();
         user.Id = Guid.NewGuid();
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
         _logger.LogInformation("New user created. ID: {UserId}", user.Id);
 
-        return _mapper.Map<UserDetailsDto>(user);
+        return user.ToDetailsDto();
     }
 
     public async Task<UserDetailsDto?> GetUserByIdAsync(Guid userId)
     {
         var user = await _userRepository.GetByIdAsync(userId);
-        return _mapper.Map<UserDetailsDto>(user);
+        return user?.ToDetailsDto();
     }
 
     public async Task<PagedResult<UserSummaryDto>> GetAllUsersAsync(PaginationQueryParameters queryParams)
@@ -84,7 +82,7 @@ public class UserService : IUserService
             .Take(queryParams.PageSize)
             .ToList();
 
-        var dtos = _mapper.Map<List<UserSummaryDto>>(items);
+        var dtos = items.Select(i => i.ToSummaryDto()).ToList();
 
         return new PagedResult<UserSummaryDto>
         {
@@ -102,11 +100,11 @@ public class UserService : IUserService
         if (user == null)
             throw new NotFoundException($"User '{userId}' has not found.");
 
-        _mapper.Map(request, user);
+        user.UpdateEntity(request);
         await _userRepository.SaveChangesAsync();
         _logger.LogInformation("User '{UserId}' data updated.", userId);
 
-        return _mapper.Map<UserDetailsDto>(user);
+        return user.ToDetailsDto();
     }
 
     public async Task DeleteUserAsync(Guid userId)

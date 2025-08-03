@@ -10,7 +10,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<IAlertService, AlertService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IBraceletService, BraceletService>();
-        services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+        
         return services;
     }
 }
