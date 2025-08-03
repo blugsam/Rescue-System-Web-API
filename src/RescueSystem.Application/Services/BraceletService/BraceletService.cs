@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using RescueSystem.Domain.Interfaces;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -9,26 +10,27 @@ using RescueSystem.Contracts.Contracts.Enums;
 using RescueSystem.Application.Exceptions;
 using RescueSystem.Domain.Entities;
 using RescueSystem.Domain.Entities.Bracelets;
-using RescueSystem.Infrastructure;
 
 namespace RescueSystem.Application.Services.BraceletService;
 
 public class BraceletService : IBraceletService
 {
-    private readonly ApplicationDbContext _db;
+    private readonly IRepository<Bracelet> _braceletRepository;
+    private readonly IRepository<User> _userRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<BraceletService> _logger;
 
-    public BraceletService(ApplicationDbContext db, IMapper mapper, ILogger<BraceletService> logger)
+    public BraceletService(IRepository<Bracelet> braceletRepository, IRepository<User> userRepository, IMapper mapper, ILogger<BraceletService> logger)
     {
-        _db = db;
+        _braceletRepository = braceletRepository;
+        _userRepository = userRepository;
         _mapper = mapper;
         _logger = logger;
     }
 
     public async Task<BraceletDetailsDto> CreateBraceletAsync(CreateBraceletRequestDto request)
     {
-        if (await _db.Bracelets.AnyAsync(b => b.SerialNumber == request.SerialNumber))
+        if ((await _braceletRepository.FindAsync(b => b.SerialNumber == request.SerialNumber)).Any())
         {
             throw new BadRequestException($"Bracelet with serial '{request.SerialNumber}' already exist.");
         }
@@ -37,88 +39,78 @@ public class BraceletService : IBraceletService
         bracelet.Id = Guid.NewGuid();
         bracelet.Status = BraceletStatus.Inactive;
 
-        _db.Bracelets.Add(bracelet);
-        await _db.SaveChangesAsync();
+        await _braceletRepository.AddAsync(bracelet);
+        await _braceletRepository.SaveChangesAsync();
 
         _logger.LogInformation("Created new bracelet. ID: {BraceletId}, Serial: {SerialNumber}", bracelet.Id, bracelet.SerialNumber);
 
-        return await _db.Bracelets
-            .AsNoTracking()
-            .Where(b => b.Id == bracelet.Id)
-            .ProjectTo<BraceletDetailsDto>(_mapper.ConfigurationProvider)
-            .SingleAsync();
+        return _mapper.Map<BraceletDetailsDto>(bracelet);
     }
 
     public async Task<BraceletDetailsDto?> GetBraceletByIdAsync(Guid braceletId)
     {
-        return await _db.Bracelets
-            .AsNoTracking()
-            .Where(b => b.Id == braceletId)
-            .ProjectTo<BraceletDetailsDto>(_mapper.ConfigurationProvider)
-            .SingleOrDefaultAsync();
+        var bracelet = await _braceletRepository.GetByIdAsync(braceletId);
+        return _mapper.Map<BraceletDetailsDto>(bracelet);
     }
 
     public async Task<PagedResult<BraceletDto>> GetAllBraceletsAsync(PaginationQueryParameters queryParams)
     {
-        int pageNumber = queryParams.PageNumber;
-        int pageSize = queryParams.PageSize;
-
-        IQueryable<Bracelet> query = _db.Bracelets.AsNoTracking();
+        var bracelets = await _braceletRepository.GetAllAsync();
+        var totalCount = bracelets.Count();
 
         if (!string.IsNullOrEmpty(queryParams.SearchTerm))
         {
             var term = queryParams.SearchTerm.Trim().ToLowerInvariant();
-            query = query.Where(b => b.SerialNumber.ToLower().Contains(term));
+            bracelets = bracelets.Where(b => b.SerialNumber.ToLower().Contains(term));
         }
-
-        var totalCount = await query.CountAsync();
 
         if (!string.IsNullOrEmpty(queryParams.SortBy))
         {
             switch (queryParams.SortBy.Trim().ToLowerInvariant())
             {
                 case "serialnumber":
-                    query = queryParams.SortDescending
-                        ? query.OrderByDescending(b => b.SerialNumber)
-                        : query.OrderBy(b => b.SerialNumber);
+                    bracelets = queryParams.SortDescending
+                        ? bracelets.OrderByDescending(b => b.SerialNumber)
+                        : bracelets.OrderBy(b => b.SerialNumber);
                     break;
                 case "status":
-                    query = queryParams.SortDescending
-                        ? query.OrderByDescending(b => b.Status)
-                        : query.OrderBy(b => b.Status);
+                    bracelets = queryParams.SortDescending
+                        ? bracelets.OrderByDescending(b => b.Status)
+                        : bracelets.OrderBy(b => b.Status);
                     break;
                 default:
-                    query = queryParams.SortDescending
-                        ? query.OrderByDescending(b => b.SerialNumber)
-                        : query.OrderBy(b => b.SerialNumber);
+                    bracelets = queryParams.SortDescending
+                        ? bracelets.OrderByDescending(b => b.SerialNumber)
+                        : bracelets.OrderBy(b => b.SerialNumber);
                     break;
             }
         }
         else
         {
-            query = queryParams.SortDescending
-                ? query.OrderByDescending(b => b.SerialNumber)
-                : query.OrderBy(b => b.SerialNumber);
+            bracelets = queryParams.SortDescending
+                ? bracelets.OrderByDescending(b => b.SerialNumber)
+                : bracelets.OrderBy(b => b.SerialNumber);
         }
 
-        var items = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ProjectTo<BraceletDto>(_mapper.ConfigurationProvider)
-            .ToListAsync();
+        var items = bracelets
+            .Skip((queryParams.PageNumber - 1) * queryParams.PageSize)
+            .Take(queryParams.PageSize)
+            .ToList();
+
+        var dtos = _mapper.Map<List<BraceletDto>>(items);
 
         return new PagedResult<BraceletDto>
         {
-            Items = items,
-            PageNumber = pageNumber,
-            PageSize = pageSize,
+            Items = dtos,
+            PageNumber = queryParams.PageNumber,
+            PageSize = queryParams.PageSize,
             TotalCount = totalCount
         };
     }
 
     public async Task UpdateBraceletStatusAsync(Guid braceletId, UpdateBraceletRequestDto request)
     {
-        var bracelet = await _db.Bracelets.FirstOrDefaultAsync(b => b.Id == braceletId);
+        var bracelet = await _braceletRepository.GetByIdAsync(braceletId);
         if (bracelet == null)
             throw new NotFoundException($"Bracelet with ID '{braceletId}' not found.");
 
@@ -128,48 +120,48 @@ public class BraceletService : IBraceletService
         var oldStatus = bracelet.Status;
         bracelet.Status = newStatus;
 
-        await _db.SaveChangesAsync();
+        await _braceletRepository.SaveChangesAsync();
         _logger.LogInformation("Bracelet with ID {BraceletId} status changed from {OldStatus} to {NewStatus}", bracelet.Id, oldStatus, newStatus);
     }
 
     public async Task DeleteBraceletAsync(Guid braceletId)
     {
-        var bracelet = await _db.Bracelets.FirstOrDefaultAsync(b => b.Id == braceletId);
+        var bracelet = await _braceletRepository.GetByIdAsync(braceletId);
         if (bracelet == null)
             throw new NotFoundException($"Bracelet with ID '{braceletId}' not found.");
 
         if (bracelet.UserId.HasValue)
             throw new BadRequestException("Can't delete bracelet, which attached to user.");
 
-        _db.Bracelets.Remove(bracelet);
-        await _db.SaveChangesAsync();
+        _braceletRepository.Remove(bracelet);
+        await _braceletRepository.SaveChangesAsync();
         _logger.LogWarning("Bracelet with ID {BraceletId} (Serial: {SerialNumber}) deleted.", bracelet.Id, bracelet.SerialNumber);
     }
 
     public async Task AssignUserToBraceletAsync(Guid braceletId, Guid userId)
     {
-        var bracelet = await _db.Bracelets.FirstOrDefaultAsync(b => b.Id == braceletId);
+        var bracelet = await _braceletRepository.GetByIdAsync(braceletId);
         if (bracelet == null)
             throw new NotFoundException($"Bracelet with ID '{braceletId}' not found");
 
-        if (!await _db.Users.AnyAsync(u => u.Id == userId))
+        if (await _userRepository.GetByIdAsync(userId) == null)
             throw new NotFoundException($"User with ID '{userId}' not found.");
 
         if (bracelet.UserId.HasValue)
             throw new BadRequestException("This bracelet already attached to another user.");
 
-        if (await _db.Bracelets.AnyAsync(b => b.UserId == userId))
+        if ((await _braceletRepository.FindAsync(b => b.UserId == userId)).Any())
             throw new BadRequestException("У этого пользователя уже есть другой браслет.");
 
         bracelet.UserId = userId;
         bracelet.Status = BraceletStatus.Active;
-        await _db.SaveChangesAsync();
+        await _braceletRepository.SaveChangesAsync();
         _logger.LogInformation("User with ID {UserId} attached to bracelet with ID {BraceletId}", userId, braceletId);
     }
 
     public async Task UnassignUserFromBraceletAsync(Guid braceletId)
     {
-        var bracelet = await _db.Bracelets.FirstOrDefaultAsync(b => b.Id == braceletId);
+        var bracelet = await _braceletRepository.GetByIdAsync(braceletId);
         if (bracelet == null)
             throw new NotFoundException($"Bracelt with ID '{braceletId}' not found.");
 
@@ -179,7 +171,7 @@ public class BraceletService : IBraceletService
         var userId = bracelet.UserId;
         bracelet.UserId = null;
         bracelet.Status = BraceletStatus.Inactive;
-        await _db.SaveChangesAsync();
+        await _braceletRepository.SaveChangesAsync();
         _logger.LogInformation("User with ID {UserId} unattached from bracelet {BraceletId}", userId, braceletId);
     }
 }
