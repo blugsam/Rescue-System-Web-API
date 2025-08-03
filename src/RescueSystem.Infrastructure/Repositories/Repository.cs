@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using RescueSystem.Domain.Interfaces;
 using System.Linq.Expressions;
 
-namespace RescueSystem.Infrastructure;
+namespace RescueSystem.Infrastructure.Repositories;
 
 public class Repository<T> : IRepository<T> where T : class
 {
