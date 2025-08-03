@@ -1,25 +1,23 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RescueSystem.Api.Exceptions;
 using RescueSystem.Contracts.Contracts.Requests;
 using RescueSystem.Contracts.Contracts.Responses;
 using RescueSystem.Application.Exceptions;
 using RescueSystem.Domain.Entities;
-using RescueSystem.Infrastructure;
+using RescueSystem.Domain.Interfaces;
 
 namespace RescueSystem.Application.Services.UserService;
 
 public class UserService : IUserService
 {
-    private readonly ApplicationDbContext _db;
+    private readonly IRepository<User> _userRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<UserService> _logger;
 
-    public UserService(ApplicationDbContext db, IMapper mapper, ILogger<UserService> logger)
+    public UserService(IRepository<User> userRepository, IMapper mapper, ILogger<UserService> logger)
     {
-        _db = db;
+        _userRepository = userRepository;
         _mapper = mapper;
         _logger = logger;
     }
@@ -28,42 +26,29 @@ public class UserService : IUserService
     {
         var user = _mapper.Map<User>(request);
         user.Id = Guid.NewGuid();
-        _db.Users.Add(user);
-        await _db.SaveChangesAsync();
+        await _userRepository.AddAsync(user);
+        await _userRepository.SaveChangesAsync();
         _logger.LogInformation("New user created. ID: {UserId}", user.Id);
 
-        return await _db.Users.AsNoTracking()
-            .Where(u => u.Id == user.Id)
-            .ProjectTo<UserDetailsDto>(_mapper.ConfigurationProvider)
-            .SingleAsync();
+        return _mapper.Map<UserDetailsDto>(user);
     }
 
     public async Task<UserDetailsDto?> GetUserByIdAsync(Guid userId)
     {
-        return await _db.Users
-            .AsNoTracking()
-            .Where(u => u.Id == userId)
-            .ProjectTo<UserDetailsDto>(_mapper.ConfigurationProvider)
-            .SingleOrDefaultAsync();
+        var user = await _userRepository.GetByIdAsync(userId);
+        return _mapper.Map<UserDetailsDto>(user);
     }
 
     public async Task<PagedResult<UserSummaryDto>> GetAllUsersAsync(PaginationQueryParameters queryParams)
     {
-        int pageNumber = queryParams.PageNumber;
-        int pageSize = queryParams.PageSize;
-
-        IQueryable<User> query = _db.Users.AsNoTracking();
+        var users = await _userRepository.GetAllAsync();
+        var totalCount = users.Count();
 
         if (!string.IsNullOrEmpty(queryParams.SearchTerm))
         {
-            var pattern = $"%{queryParams.SearchTerm}%";
-            query = query.Where(u => EF.Functions.ILike(u.FullName, pattern));
-
-            //var lowerTerm = queryParams.SearchTerm.ToLowerInvariant();
-            //query = query.Where(u => u.FullName.ToLower().Contains(lowerTerm));
+            var lowerTerm = queryParams.SearchTerm.ToLowerInvariant();
+            users = users.Where(u => u.FullName.ToLower().Contains(lowerTerm));
         }
-
-        var totalCount = await query.CountAsync();
 
         if (!string.IsNullOrEmpty(queryParams.SortBy))
         {
@@ -71,40 +56,41 @@ public class UserService : IUserService
             switch (sortBy)
             {
                 case "fullname":
-                    query = queryParams.SortDescending
-                        ? query.OrderByDescending(u => u.FullName)
-                        : query.OrderBy(u => u.FullName);
+                    users = queryParams.SortDescending
+                        ? users.OrderByDescending(u => u.FullName)
+                        : users.OrderBy(u => u.FullName);
                     break;
                 case "dateofbirth":
-                    query = queryParams.SortDescending
-                        ? query.OrderByDescending(u => u.DateOfBirth)
-                        : query.OrderBy(u => u.DateOfBirth);
+                    users = queryParams.SortDescending
+                        ? users.OrderByDescending(u => u.DateOfBirth)
+                        : users.OrderBy(u => u.DateOfBirth);
                     break;
                 default:
-                    query = queryParams.SortDescending
-                        ? query.OrderByDescending(u => u.FullName)
-                        : query.OrderBy(u => u.FullName);
+                    users = queryParams.SortDescending
+                        ? users.OrderByDescending(u => u.FullName)
+                        : users.OrderBy(u => u.FullName);
                     break;
             }
         }
         else
         {
-            query = queryParams.SortDescending
-                ? query.OrderByDescending(u => u.FullName)
-                : query.OrderBy(u => u.FullName);
+            users = queryParams.SortDescending
+                ? users.OrderByDescending(u => u.FullName)
+                : users.OrderBy(u => u.FullName);
         }
 
-        var items = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ProjectTo<UserSummaryDto>(_mapper.ConfigurationProvider)
-            .ToListAsync();
+        var items = users
+            .Skip((queryParams.PageNumber - 1) * queryParams.PageSize)
+            .Take(queryParams.PageSize)
+            .ToList();
+
+        var dtos = _mapper.Map<List<UserSummaryDto>>(items);
 
         return new PagedResult<UserSummaryDto>
         {
-            Items = items,
-            PageNumber = pageNumber,
-            PageSize = pageSize,
+            Items = dtos,
+            PageNumber = queryParams.PageNumber,
+            PageSize = queryParams.PageSize,
             TotalCount = totalCount
         };
     }
@@ -112,21 +98,20 @@ public class UserService : IUserService
 
     public async Task<UserDetailsDto> UpdateUserAsync(Guid userId, UpdateUserRequestDto request)
     {
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
             throw new NotFoundException($"User '{userId}' has not found.");
 
         _mapper.Map(request, user);
-        await _db.SaveChangesAsync();
+        await _userRepository.SaveChangesAsync();
         _logger.LogInformation("User '{UserId}' data updated.", userId);
 
-        return await _db.Users.AsNoTracking().Where(u => u.Id == userId)
-            .ProjectTo<UserDetailsDto>(_mapper.ConfigurationProvider).SingleAsync();
+        return _mapper.Map<UserDetailsDto>(user);
     }
 
     public async Task DeleteUserAsync(Guid userId)
     {
-        var user = await _db.Users.Include(u => u.Bracelet).FirstOrDefaultAsync(u => u.Id == userId);
+        var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
             throw new NotFoundException($"User '{userId}' has not found.");
 
@@ -135,8 +120,8 @@ public class UserService : IUserService
             throw new BadRequestException("You can't delete user with assigned bracelet.");
         }
 
-        _db.Users.Remove(user);
-        await _db.SaveChangesAsync();
+        _userRepository.Remove(user);
+        await _userRepository.SaveChangesAsync();
         _logger.LogWarning("User '{UserId}' has been deleted.", user.Id);
     }
 }
