@@ -12,15 +12,15 @@ using RescueSystem.Infrastructure;
 namespace RescueSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250609123532_HealthMetricNowIsAdditional")]
-    partial class HealthMetricNowIsAdditional
+    [Migration("20250803180831_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.5")
+                .HasAnnotation("ProductVersion", "9.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -31,7 +31,7 @@ namespace RescueSystem.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("BraceletId")
+                    b.Property<Guid?>("BraceletId")
                         .HasColumnType("uuid");
 
                     b.Property<double>("Latitude")
@@ -40,8 +40,9 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.Property<double>("Longitude")
                         .HasColumnType("double precision");
 
-                    b.Property<int>("QualityLevel")
-                        .HasColumnType("integer");
+                    b.Property<string>("QualityLevel")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -50,15 +51,11 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.PrimitiveCollection<string[]>("ValidationErrors")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
                     b.HasKey("Id");
 
                     b.HasIndex("BraceletId");
 
-                    b.ToTable("Alerts");
+                    b.ToTable("Alerts", (string)null);
                 });
 
             modelBuilder.Entity("RescueSystem.Domain.Entities.Alerts.AlertTrigger", b =>
@@ -79,7 +76,27 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.HasIndex("AlertId", "Type")
                         .IsUnique();
 
-                    b.ToTable("AlertTriggers");
+                    b.ToTable("AlertTriggers", (string)null);
+                });
+
+            modelBuilder.Entity("RescueSystem.Domain.Entities.Alerts.AlertValidationError", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AlertId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ErrorMessage")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AlertId");
+
+                    b.ToTable("AlertValidationErrors", (string)null);
                 });
 
             modelBuilder.Entity("RescueSystem.Domain.Entities.Bracelets.Bracelet", b =>
@@ -97,7 +114,7 @@ namespace RescueSystem.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
@@ -108,7 +125,7 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Bracelets");
+                    b.ToTable("Bracelets", (string)null);
                 });
 
             modelBuilder.Entity("RescueSystem.Domain.Entities.Health.HealthMetric", b =>
@@ -126,12 +143,15 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.Property<double?>("Pulse")
                         .HasColumnType("double precision");
 
+                    b.Property<string>("RawDataJson")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AlertId")
                         .IsUnique();
 
-                    b.ToTable("HealthMetrics", t =>
+                    b.ToTable("HealthMetrics", null, t =>
                         {
                             t.HasCheckConstraint("CK_HealthMetric_Pulse", "\"Pulse\" IS NULL OR (\"Pulse\" >= 30 AND \"Pulse\" <= 250)");
 
@@ -139,7 +159,7 @@ namespace RescueSystem.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("RescueSystem.Domain.Entities.Health.RescueSystem.Domain.Entities.HealthProfileThresholds", b =>
+            modelBuilder.Entity("RescueSystem.Domain.Entities.Health.HealthProfileThresholds", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -167,7 +187,7 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.HasIndex("ProfileName")
                         .IsUnique();
 
-                    b.ToTable("HealthProfileThresholds");
+                    b.ToTable("HealthProfileThresholdss", (string)null);
 
                     b.HasData(
                         new
@@ -208,6 +228,9 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.Property<DateOnly>("DateOfBirth")
                         .HasColumnType("date");
 
+                    b.Property<string>("EmergencyContact")
+                        .HasColumnType("text");
+
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -216,11 +239,14 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.Property<Guid?>("HealthProfileId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("MedicalNotes")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("HealthProfileId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("RescueSystem.Domain.Entities.Alerts.Alert", b =>
@@ -228,8 +254,7 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.HasOne("RescueSystem.Domain.Entities.Bracelets.Bracelet", "Bracelet")
                         .WithMany("Alerts")
                         .HasForeignKey("BraceletId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Bracelet");
                 });
@@ -245,13 +270,23 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.Navigation("Alert");
                 });
 
+            modelBuilder.Entity("RescueSystem.Domain.Entities.Alerts.AlertValidationError", b =>
+                {
+                    b.HasOne("RescueSystem.Domain.Entities.Alerts.Alert", "Alert")
+                        .WithMany("ValidationErrors")
+                        .HasForeignKey("AlertId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Alert");
+                });
+
             modelBuilder.Entity("RescueSystem.Domain.Entities.Bracelets.Bracelet", b =>
                 {
                     b.HasOne("RescueSystem.Domain.Entities.User", "User")
                         .WithOne("Bracelet")
                         .HasForeignKey("RescueSystem.Domain.Entities.Bracelets.Bracelet", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -269,7 +304,7 @@ namespace RescueSystem.Infrastructure.Migrations
 
             modelBuilder.Entity("RescueSystem.Domain.Entities.User", b =>
                 {
-                    b.HasOne("RescueSystem.Domain.Entities.Health.RescueSystem.Domain.Entities.HealthProfileThresholds", "HealthProfile")
+                    b.HasOne("RescueSystem.Domain.Entities.Health.HealthProfileThresholds", "HealthProfile")
                         .WithMany("Users")
                         .HasForeignKey("HealthProfileId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -282,6 +317,8 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.Navigation("HealthMetric");
 
                     b.Navigation("Triggers");
+
+                    b.Navigation("ValidationErrors");
                 });
 
             modelBuilder.Entity("RescueSystem.Domain.Entities.Bracelets.Bracelet", b =>
@@ -289,7 +326,7 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.Navigation("Alerts");
                 });
 
-            modelBuilder.Entity("RescueSystem.Domain.Entities.Health.RescueSystem.Domain.Entities.HealthProfileThresholds", b =>
+            modelBuilder.Entity("RescueSystem.Domain.Entities.Health.HealthProfileThresholds", b =>
                 {
                     b.Navigation("Users");
                 });

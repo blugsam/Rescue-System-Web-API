@@ -2,7 +2,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RescueSystem.Infrastructure;
@@ -12,15 +11,13 @@ using RescueSystem.Infrastructure;
 namespace RescueSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250610012029_ForbiddenBracelet")]
-    partial class ForbiddenBracelet
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.5")
+                .HasAnnotation("ProductVersion", "9.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -55,7 +52,7 @@ namespace RescueSystem.Infrastructure.Migrations
 
                     b.HasIndex("BraceletId");
 
-                    b.ToTable("Alerts");
+                    b.ToTable("Alerts", (string)null);
                 });
 
             modelBuilder.Entity("RescueSystem.Domain.Entities.Alerts.AlertTrigger", b =>
@@ -76,7 +73,7 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.HasIndex("AlertId", "Type")
                         .IsUnique();
 
-                    b.ToTable("AlertTriggers");
+                    b.ToTable("AlertTriggers", (string)null);
                 });
 
             modelBuilder.Entity("RescueSystem.Domain.Entities.Alerts.AlertValidationError", b =>
@@ -96,7 +93,7 @@ namespace RescueSystem.Infrastructure.Migrations
 
                     b.HasIndex("AlertId");
 
-                    b.ToTable("AlertValidationErrors");
+                    b.ToTable("AlertValidationErrors", (string)null);
                 });
 
             modelBuilder.Entity("RescueSystem.Domain.Entities.Bracelets.Bracelet", b =>
@@ -125,7 +122,7 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Bracelets");
+                    b.ToTable("Bracelets", (string)null);
                 });
 
             modelBuilder.Entity("RescueSystem.Domain.Entities.Health.HealthMetric", b =>
@@ -143,12 +140,15 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.Property<double?>("Pulse")
                         .HasColumnType("double precision");
 
+                    b.Property<string>("RawDataJson")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AlertId")
                         .IsUnique();
 
-                    b.ToTable("HealthMetrics", t =>
+                    b.ToTable("HealthMetrics", null, t =>
                         {
                             t.HasCheckConstraint("CK_HealthMetric_Pulse", "\"Pulse\" IS NULL OR (\"Pulse\" >= 30 AND \"Pulse\" <= 250)");
 
@@ -184,7 +184,7 @@ namespace RescueSystem.Infrastructure.Migrations
                     b.HasIndex("ProfileName")
                         .IsUnique();
 
-                    b.ToTable("HealthProfileThresholds");
+                    b.ToTable("HealthProfileThresholdss", (string)null);
 
                     b.HasData(
                         new
@@ -243,7 +243,7 @@ namespace RescueSystem.Infrastructure.Migrations
 
                     b.HasIndex("HealthProfileId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("RescueSystem.Domain.Entities.Alerts.Alert", b =>
