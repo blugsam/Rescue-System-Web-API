@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RescueSystem.Domain\RescueSystem.Domain.csproj" />
+    <ProjectReference Include="..\RescueSystem.Application\RescueSystem.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

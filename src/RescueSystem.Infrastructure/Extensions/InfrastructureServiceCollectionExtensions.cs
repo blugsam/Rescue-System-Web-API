@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using RescueSystem.Domain.Interfaces;
 
 namespace RescueSystem.Infrastructure.Extensions;
 
@@ -16,6 +17,8 @@ public static class InfrastructureServiceCollectionExtensions
                 npgsqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
             });
         });
+
+        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
         return services;
     }
