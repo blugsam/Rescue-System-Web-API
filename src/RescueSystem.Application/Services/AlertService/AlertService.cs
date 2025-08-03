@@ -1,32 +1,44 @@
-﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
+﻿using System.Text.Json;
+using FluentValidation.Results;
+using AutoMapper;
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RescueSystem.Application.Exceptions;
 using RescueSystem.Application.Interfaces;
 using RescueSystem.Contracts.Contracts.Enums;
 using RescueSystem.Contracts.Contracts.Requests;
 using RescueSystem.Contracts.Contracts.Responses;
+using RescueSystem.Domain.Constants;
+using RescueSystem.Domain.Entities.Bracelets;
 using RescueSystem.Domain.Entities;
 using RescueSystem.Domain.Entities.Alerts;
 using RescueSystem.Domain.Entities.Health;
-using RescueSystem.Infrastructure;
-using System.Text.Json;
+using RescueSystem.Domain.Interfaces;
 
 namespace RescueSystem.Application.Services.AlertService;
 
 public class AlertService : IAlertService
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly IRepository<Alert> _alertRepository;
+    private readonly IRepository<Bracelet> _braceletRepository;
+    private readonly IRepository<HealthProfileThresholds> _healthProfileThresholdsRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<AlertService> _logger;
     private readonly IValidator<CreateAlertRequestDto> _validator;
     private readonly IAlertNotifier _alertNotifier;
 
-    public AlertService(ApplicationDbContext dbContext, IMapper mapper, IValidator<CreateAlertRequestDto> validator, ILogger<AlertService> logger, IAlertNotifier alertNotifier)
+    public AlertService(
+        IRepository<Alert> alertRepository,
+        IRepository<Bracelet> braceletRepository,
+        IRepository<HealthProfileThresholds> healthProfileThresholdsRepository,
+        IMapper mapper, 
+        IValidator<CreateAlertRequestDto> validator, 
+        ILogger<AlertService> logger, 
+        IAlertNotifier alertNotifier)
     {
-        _dbContext = dbContext;
+        _alertRepository = alertRepository;
+        _braceletRepository = braceletRepository;
+        _healthProfileThresholdsRepository = healthProfileThresholdsRepository;
         _mapper = mapper;
         _validator = validator;
         _logger = logger;
@@ -35,41 +47,18 @@ public class AlertService : IAlertService
 
     public async Task<AlertDetailsDto> CreateAlertFromSignalAsync(CreateAlertRequestDto request)
     {
-        var bracelet = await _dbContext.Bracelets
-            .Include(b => b.User).ThenInclude(u => u.HealthProfile)
-            .FirstOrDefaultAsync(b => b.SerialNumber == request.SerialNumber);
+        var bracelet = (await _braceletRepository.FindAsync(b => b.SerialNumber == request.SerialNumber)).FirstOrDefault();
 
         if (bracelet == null)
         {
-            var grayAlert = new Alert
-            {
-                Id = Guid.NewGuid(),
-
-                Timestamp = DateTimeOffset.UtcNow,
-                Latitude = request.Latitude,
-                Longitude = request.Longitude,
-
-                Status = AlertProcessingStatus.New,
-                QualityLevel = AlertQualityLevel.Gray,
-
-                ValidationErrors = new List<AlertValidationError>
-                {
-                    new()
-                    {
-                        Id = Guid.NewGuid(),
-                        ErrorMessage = $"Received signal from unknown bracelet: {request.SerialNumber}"
-                    }
-                }
-            };
-
-            _dbContext.Alerts.Add(grayAlert);
-            await _dbContext.SaveChangesAsync();
-
-            var grayAlertDto = _mapper.Map<AlertDetailsDto>(grayAlert);
-            await _alertNotifier.NotifyNewAlertAsync(_mapper.Map<AlertSummaryDto>(grayAlert));
-            return grayAlertDto;
+            return await CreateGrayAlertAsync(request);
         }
 
+        return await CreateRedOrYellowAlertAsync(request, bracelet);
+    }
+
+    private async Task<AlertDetailsDto> CreateRedOrYellowAlertAsync(CreateAlertRequestDto request, Bracelet bracelet)
+    {
         var validationResult = await _validator.ValidateAsync(request);
 
         var alert = _mapper.Map<Alert>(request);
@@ -92,37 +81,15 @@ public class AlertService : IAlertService
 
         if (request.HealthMetrics != null)
         {
-            var healthMetric = new HealthMetric
-            {
-                Id = Guid.NewGuid(),
-                RawDataJson = JsonSerializer.Serialize(request.HealthMetrics)
-            };
-
-            bool pulseIsInvalid = validationResult.Errors
-                .Any(e => e.PropertyName == $"{nameof(CreateAlertRequestDto.HealthMetrics)}.{nameof(HealthMetricsRequestDto.Pulse)}");
-
-            if (!pulseIsInvalid && request.HealthMetrics.Pulse.HasValue)
-            {
-                healthMetric.Pulse = request.HealthMetrics.Pulse.Value;
-            }
-
-            bool tempIsInvalid = validationResult.Errors
-                .Any(e => e.PropertyName == $"{nameof(CreateAlertRequestDto.HealthMetrics)}.{nameof(HealthMetricsRequestDto.BodyTemperature)}");
-
-            if (!tempIsInvalid && request.HealthMetrics.BodyTemperature.HasValue)
-            {
-                healthMetric.BodyTemperature = request.HealthMetrics.BodyTemperature.Value;
-            }
-
-            alert.HealthMetric = healthMetric;
+            alert.HealthMetric = CreateHealthMetric(request, validationResult);
         }
 
-        var defaultProfile = await _dbContext.HealthProfileThresholds.AsNoTracking().SingleAsync(p => p.ProfileName == "Default");
+        var defaultProfile = (await _healthProfileThresholdsRepository.FindAsync(p => p.ProfileName == HealthProfileThresholdsConstants.DefaultProfileName)).First();
         var userThresholds = bracelet.User.HealthProfile ?? defaultProfile;
         alert.Triggers = DetermineAlertTriggers(request, userThresholds, defaultProfile);
 
-        _dbContext.Alerts.Add(alert);
-        await _dbContext.SaveChangesAsync();
+        await _alertRepository.AddAsync(alert);
+        await _alertRepository.SaveChangesAsync();
         _logger.LogInformation("Created new alert {AlertId} with quality {QualityLevel}.", alert.Id, alert.QualityLevel);
 
         alert.Bracelet = bracelet;
@@ -133,7 +100,62 @@ public class AlertService : IAlertService
         return _mapper.Map<AlertDetailsDto>(alert);
     }
 
-    private ICollection<AlertTrigger> DetermineAlertTriggers(CreateAlertRequestDto request, HealthProfileThresholds userThresholds, HealthProfileThresholds defaultThresholds)
+    private HealthMetric CreateHealthMetric(CreateAlertRequestDto request, ValidationResult validationResult)
+    {
+        var healthMetric = new HealthMetric
+        {
+            Id = Guid.NewGuid(),
+            RawDataJson = JsonSerializer.Serialize(request.HealthMetrics)
+        };
+
+        bool pulseIsInvalid = validationResult.Errors
+            .Any(e => e.PropertyName == $"{nameof(CreateAlertRequestDto.HealthMetrics)}.{nameof(HealthMetricsRequestDto.Pulse)}");
+
+        if (!pulseIsInvalid && request.HealthMetrics.Pulse.HasValue)
+        {
+            healthMetric.Pulse = request.HealthMetrics.Pulse.Value;
+        }
+
+        bool tempIsInvalid = validationResult.Errors
+            .Any(e => e.PropertyName == $"{nameof(CreateAlertRequestDto.HealthMetrics)}.{nameof(HealthMetricsRequestDto.BodyTemperature)}");
+
+        if (!tempIsInvalid && request.HealthMetrics.BodyTemperature.HasValue)
+        {
+            healthMetric.BodyTemperature = request.HealthMetrics.BodyTemperature.Value;
+        }
+
+        return healthMetric;
+    }
+
+    private async Task<AlertDetailsDto> CreateGrayAlertAsync(CreateAlertRequestDto request)
+    {
+        var grayAlert = new Alert
+        {
+            Id = Guid.NewGuid(),
+            Timestamp = DateTimeOffset.UtcNow,
+            Latitude = request.Latitude,
+            Longitude = request.Longitude,
+            Status = AlertProcessingStatus.New,
+            QualityLevel = AlertQualityLevel.Gray,
+            ValidationErrors = new List<AlertValidationError>
+            {
+                new()
+                {
+                    Id = Guid.NewGuid(),
+                    ErrorMessage = $"Received signal from unknown bracelet: {request.SerialNumber}"
+                }
+            }
+        };
+
+        await _alertRepository.AddAsync(grayAlert);
+        await _alertRepository.SaveChangesAsync();
+
+        var grayAlertDto = _mapper.Map<AlertDetailsDto>(grayAlert);
+        await _alertNotifier.NotifyNewAlertAsync(_mapper.Map<AlertSummaryDto>(grayAlert));
+        return grayAlertDto;
+    }
+
+    private ICollection<AlertTrigger> DetermineAlertTriggers(CreateAlertRequestDto request, HealthProfileThresholds? userThresholds, HealthProfileThresholds? defaultThresholds)
     {
         var triggers = new List<AlertTrigger>();
         if (request.IsSosSignal)
@@ -143,17 +165,17 @@ public class AlertService : IAlertService
 
         if (request.HealthMetrics?.Pulse is double pulse)
         {
-            if (pulse > (userThresholds.HighPulseThreshold ?? defaultThresholds.HighPulseThreshold))
+            if (pulse > (userThresholds?.HighPulseThreshold ?? defaultThresholds?.HighPulseThreshold))
                 triggers.Add(new AlertTrigger { Id = Guid.NewGuid(), Type = AlertType.HighPulse });
-            if (pulse < (userThresholds.LowPulseThreshold ?? defaultThresholds.LowPulseThreshold))
+            if (pulse < (userThresholds?.LowPulseThreshold ?? defaultThresholds?.LowPulseThreshold))
                 triggers.Add(new AlertTrigger { Id = Guid.NewGuid(), Type = AlertType.LowPulse });
         }
         
         if (request.HealthMetrics?.BodyTemperature is double temp)
         {
-            if (temp > (userThresholds.HighTempThreshold ?? defaultThresholds.HighTempThreshold))
+            if (temp > (userThresholds?.HighTempThreshold ?? defaultThresholds?.HighTempThreshold))
                 triggers.Add(new AlertTrigger { Id = Guid.NewGuid(), Type = AlertType.HighTemperature });
-            if (temp < (userThresholds.LowTempThreshold ?? defaultThresholds.LowTempThreshold))
+            if (temp < (userThresholds?.LowTempThreshold ?? defaultThresholds?.LowTempThreshold))
                 triggers.Add(new AlertTrigger { Id = Guid.NewGuid(), Type = AlertType.LowTemperature });
         }
 
@@ -162,39 +184,36 @@ public class AlertService : IAlertService
 
     public async Task DeleteAlertAsync(Guid alertId)
     {
-        var alert = await _dbContext.Alerts.FirstOrDefaultAsync(a => a.Id == alertId);
+        var alert = await _alertRepository.GetByIdAsync(alertId);
 
         if (alert == null)
         {
             throw new NotFoundException($"Alert with ID '{alertId}' not found.");
         }
 
-        _dbContext.Alerts.Remove(alert);
+        _alertRepository.Remove(alert);
 
-        await _dbContext.SaveChangesAsync();
+        await _alertRepository.SaveChangesAsync();
 
         _logger.LogWarning("Alert with ID {AlertId} was deleted.", alertId);
     }
 
-    public async Task<PagedResult<AlertSummaryDto>> GetAllAlertsSummaryAsync(PaginationQueryParameters queryParams)
+        public async Task<PagedResult<AlertSummaryDto>> GetAllAlertsSummaryAsync(PaginationQueryParameters queryParams)
     {
-        var query = _dbContext.Alerts.AsNoTracking();
+        var alerts = await _alertRepository.GetAllAsync();
+        var totalCount = alerts.Count();
 
-        //фильтрацию по статусу или качеству
-        //if (!string.IsNullOrWhiteSpace(queryParams.SearchTerm)) ...
-
-        var totalCount = await query.CountAsync();
-
-        var items = await query
+        var items = alerts
             .OrderByDescending(a => a.Timestamp)
             .Skip((queryParams.PageNumber - 1) * queryParams.PageSize)
             .Take(queryParams.PageSize)
-            .ProjectTo<AlertSummaryDto>(_mapper.ConfigurationProvider)
-            .ToListAsync();
+            .ToList();
+
+        var dtos = _mapper.Map<List<AlertSummaryDto>>(items);
 
         return new PagedResult<AlertSummaryDto>
         {
-            Items = items,
+            Items = dtos,
             PageNumber = queryParams.PageNumber,
             PageSize = queryParams.PageSize,
             TotalCount = totalCount
@@ -202,6 +221,8 @@ public class AlertService : IAlertService
     }
 
     public async Task<AlertDetailsDto?> GetAlertDetailsByIdAsync(Guid id)
-        => await _dbContext.Alerts.AsNoTracking().Where(a => a.Id == id)
-            .ProjectTo<AlertDetailsDto>(_mapper.ConfigurationProvider).FirstOrDefaultAsync();
+    {
+        var alert = await _alertRepository.GetByIdAsync(id);
+        return _mapper.Map<AlertDetailsDto>(alert);
+    }
 }
