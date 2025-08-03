@@ -82,7 +82,7 @@ public class AlertService : IAlertService
         }
 
         var defaultProfile = (await _healthProfileThresholdsRepository.FindAsync(p => p.ProfileName == HealthProfileThresholdsConstants.DefaultProfileName)).First();
-        var userThresholds = bracelet.User.HealthProfile ?? defaultProfile;
+        var userThresholds = bracelet.User?.HealthProfile ?? defaultProfile;
         alert.Triggers = DetermineAlertTriggers(request, userThresholds, defaultProfile);
 
         await _alertRepository.AddAsync(alert);
