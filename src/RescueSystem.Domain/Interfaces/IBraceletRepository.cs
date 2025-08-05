@@ -4,5 +4,5 @@ namespace RescueSystem.Domain.Interfaces;
 
 public interface IBraceletRepository
 {
-    Task<Bracelet> GetByIdWithUserAsync(Guid id);
+    Task<Bracelet?> GetByIdWithUserAsync(Guid id);
 }
