@@ -20,6 +20,7 @@ public static class InfrastructureServiceCollectionExtensions
         });
 
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped(typeof(IBraceletRepository), typeof(BraceletRepository));
 
         return services;
     }

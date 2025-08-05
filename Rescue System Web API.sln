@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RescueSystem.Infrastructure
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RescueSystem.Application", "src\RescueSystem.Application\RescueSystem.Application.csproj", "{7D146231-570E-46D0-A143-E5FAF9851D63}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RescueSystem.Tests", "src\RescueSystem.Tests\RescueSystem.Tests.csproj", "{B272E065-C4AE-4F72-8DD7-2989F9A19C4F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +38,10 @@ Global
 		{7D146231-570E-46D0-A143-E5FAF9851D63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D146231-570E-46D0-A143-E5FAF9851D63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D146231-570E-46D0-A143-E5FAF9851D63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B272E065-C4AE-4F72-8DD7-2989F9A19C4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B272E065-C4AE-4F72-8DD7-2989F9A19C4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B272E065-C4AE-4F72-8DD7-2989F9A19C4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B272E065-C4AE-4F72-8DD7-2989F9A19C4F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

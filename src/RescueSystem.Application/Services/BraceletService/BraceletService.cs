@@ -16,12 +16,15 @@ public class BraceletService : IBraceletService
     private readonly IRepository<Bracelet> _braceletRepository;
     private readonly IRepository<User> _userRepository;
     private readonly ILogger<BraceletService> _logger;
+    private readonly IBraceletRepository _braceletRepositoryForInclude;
 
-    public BraceletService(IRepository<Bracelet> braceletRepository, IRepository<User> userRepository, ILogger<BraceletService> logger)
+    public BraceletService(IRepository<Bracelet> braceletRepository, IRepository<User> userRepository, ILogger<BraceletService> logger,
+        IBraceletRepository braceletRepositoryForInclude)
     {
         _braceletRepository = braceletRepository;
         _userRepository = userRepository;
         _logger = logger;
+        _braceletRepositoryForInclude = braceletRepositoryForInclude;
     }
 
     public async Task<BraceletDetailsDto> CreateBraceletAsync(CreateBraceletRequestDto request)
@@ -45,7 +48,7 @@ public class BraceletService : IBraceletService
 
     public async Task<BraceletDetailsDto?> GetBraceletByIdAsync(Guid braceletId)
     {
-        var bracelet = await _braceletRepository.GetByIdAsync(braceletId);
+        var bracelet = await _braceletRepositoryForInclude.GetByIdWithUserAsync(braceletId);
         return bracelet?.ToDetailsDto();
     }
 
@@ -143,13 +146,18 @@ public class BraceletService : IBraceletService
         if (await _userRepository.GetByIdAsync(userId) == null)
             throw new NotFoundException($"User with ID '{userId}' not found.");
 
+        var userToAssign = await _userRepository.GetByIdAsync(userId);
+        if (userToAssign == null)
+            throw new NotFoundException($"User with ID '{userId}' not found.");
+
         if (bracelet.UserId.HasValue)
             throw new BadRequestException("This bracelet already attached to another user.");
 
         if ((await _braceletRepository.FindAsync(b => b.UserId == userId)).Any())
-            throw new BadRequestException("У этого пользователя уже есть другой браслет.");
+            throw new BadRequestException($"User with ID '{userId}' already attached to another bracelet.");
 
         bracelet.UserId = userId;
+        bracelet.User = userToAssign;
         bracelet.Status = BraceletStatus.Active;
         await _braceletRepository.SaveChangesAsync();
         _logger.LogInformation("User with ID {UserId} attached to bracelet with ID {BraceletId}", userId, braceletId);
