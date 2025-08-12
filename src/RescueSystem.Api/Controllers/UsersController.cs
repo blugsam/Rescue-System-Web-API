@@ -2,7 +2,7 @@
 using RescueSystem.Contracts.Contracts.Requests;
 using RescueSystem.Contracts.Contracts.Responses;
 using RescueSystem.Application.Services.UserService;
-using RescueSystem.Domain.Entities;
+using RescueSystem.Domain.Common;
 
 namespace RescueSystem.Api.Controllers;
 
