@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using RescueSystem.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using RescueSystem.Domain.Entities.Alerts;
 using RescueSystem.Domain.Entities.Bracelets;
 using RescueSystem.Domain.Entities.Health;
+using RescueSystem.Domain.Entities;
 
 namespace RescueSystem.Infrastructure;
 

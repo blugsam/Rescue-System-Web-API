@@ -1,4 +1,4 @@
-﻿namespace RescueSystem.Domain.Entities;
+namespace RescueSystem.Domain.Common;
 
 public class PagedResult<T> where T : class
 {

@@ -17,9 +17,9 @@ namespace RescueSystem.Tests;
 
 public class AlertServiceTests
 {
-    private readonly Mock<IRepository<Alert>> _alertRepositoryMock;
-    private readonly Mock<IRepository<Bracelet>> _braceletRepositoryMock;
-    private readonly Mock<IRepository<HealthProfileThresholds>> _healthProfileThresholdsRepositoryMock;
+    private readonly Mock<IAlertRepository> _alertRepositoryMock;
+    private readonly Mock<IBraceletRepository> _braceletRepositoryMock;
+    private readonly Mock<IHealthProfileThresholdsRepository> _healthProfileThresholdsRepositoryMock;
     private readonly Mock<ILogger<AlertService>> _loggerMock;
     private readonly Mock<IValidator<CreateAlertRequestDto>> _validatorMock;
     private readonly Mock<IAlertNotifier> _alertNotifierMock;
@@ -27,9 +27,9 @@ public class AlertServiceTests
 
     public AlertServiceTests()
     {
-        _alertRepositoryMock = new Mock<IRepository<Alert>>();
-        _braceletRepositoryMock = new Mock<IRepository<Bracelet>>();
-        _healthProfileThresholdsRepositoryMock = new Mock<IRepository<HealthProfileThresholds>>();
+        _alertRepositoryMock = new Mock<IAlertRepository>();
+        _braceletRepositoryMock = new Mock<IBraceletRepository>();
+        _healthProfileThresholdsRepositoryMock = new Mock<IHealthProfileThresholdsRepository>();
         _loggerMock = new Mock<ILogger<AlertService>>();
         _validatorMock = new Mock<IValidator<CreateAlertRequestDto>>();
         _alertNotifierMock = new Mock<IAlertNotifier>();
@@ -43,14 +43,14 @@ public class AlertServiceTests
             _alertNotifierMock.Object);
 
         _healthProfileThresholdsRepositoryMock.Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<HealthProfileThresholds, bool>>>()))
-            .ReturnsAsync(new List<HealthProfileThresholds> { new HealthProfileThresholds { ProfileName = HealthProfileThresholdsConstants.DefaultProfileName } });
+            .ReturnsAsync(new HealthProfileThresholds { ProfileName = HealthProfileThresholdsConstants.DefaultProfileName });
     }
 
     [Fact]
     public async Task CreateAlertFromSignalAsync_WithUnknownBracelet_ShouldCreateGrayAlert()
     {
         var request = new CreateAlertRequestDto { SerialNumber = "unknown_serial" };
-        _braceletRepositoryMock.Setup(r => r.FindAsync(b => b.SerialNumber == request.SerialNumber)).ReturnsAsync(new List<Bracelet>());
+        _braceletRepositoryMock.Setup(r => r.GetBraceletBySerialNumber(request.SerialNumber)).ReturnsAsync((Bracelet?)null);
 
         var result = await _alertService.CreateAlertFromSignalAsync(request);
 
@@ -66,7 +66,7 @@ public class AlertServiceTests
     {
         var request = new CreateAlertRequestDto { SerialNumber = "known_serial" };
         var bracelet = new Bracelet { Id = Guid.NewGuid(), SerialNumber = "known_serial" };
-        _braceletRepositoryMock.Setup(r => r.FindAsync(b => b.SerialNumber == request.SerialNumber)).ReturnsAsync(new List<Bracelet> { bracelet });
+        _braceletRepositoryMock.Setup(r => r.GetBraceletBySerialNumber(request.SerialNumber)).ReturnsAsync(bracelet);
         _validatorMock.Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>())).ReturnsAsync(new ValidationResult());
 
         var result = await _alertService.CreateAlertFromSignalAsync(request);
@@ -83,7 +83,7 @@ public class AlertServiceTests
     {
         var request = new CreateAlertRequestDto { SerialNumber = "known_serial" };
         var bracelet = new Bracelet { Id = Guid.NewGuid(), SerialNumber = "known_serial" };
-        _braceletRepositoryMock.Setup(r => r.FindAsync(b => b.SerialNumber == request.SerialNumber)).ReturnsAsync(new List<Bracelet> { bracelet });
+        _braceletRepositoryMock.Setup(r => r.GetBraceletBySerialNumber(request.SerialNumber)).ReturnsAsync(bracelet);
         _validatorMock.Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>())).ReturnsAsync(new ValidationResult(new[] { new ValidationFailure("prop", "error") }));
 
         var result = await _alertService.CreateAlertFromSignalAsync(request);
@@ -99,12 +99,9 @@ public class AlertServiceTests
     public async Task DeleteAlertAsync_WithExistingAlert_ShouldDeleteAlert()
     {
         var alertId = Guid.NewGuid();
-        var alert = new Alert { Id = alertId };
-        _alertRepositoryMock.Setup(r => r.GetByIdAsync(alertId)).ReturnsAsync(alert);
-
         await _alertService.DeleteAlertAsync(alertId);
 
-        _alertRepositoryMock.Verify(r => r.Remove(alert), Times.Once);
+        _alertRepositoryMock.Verify(r => r.RemoveById(alertId), Times.Once);
         _alertRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
