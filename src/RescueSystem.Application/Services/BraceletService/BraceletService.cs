@@ -1,30 +1,27 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using RescueSystem.Api.Exceptions;
 using RescueSystem.Contracts.Contracts.Requests;
 using RescueSystem.Contracts.Contracts.Responses;
 using RescueSystem.Contracts.Contracts.Enums;
 using RescueSystem.Application.Exceptions;
-using RescueSystem.Domain.Entities;
-using RescueSystem.Domain.Entities.Bracelets;
 using RescueSystem.Domain.Interfaces;
+using RescueSystem.Application.Mapping.Bracelets;
 using RescueSystem.Application.Mapping;
+using RescueSystem.Domain.Common;
 
 namespace RescueSystem.Application.Services.BraceletService;
 
 public class BraceletService : IBraceletService
 {
-    private readonly IRepository<Bracelet> _braceletRepository;
-    private readonly IRepository<User> _userRepository;
+    private readonly IBraceletRepository _braceletRepository;
+    private readonly IUserRepository _userRepository;
     private readonly ILogger<BraceletService> _logger;
-    private readonly IBraceletRepository _braceletRepositoryForInclude;
 
-    public BraceletService(IRepository<Bracelet> braceletRepository, IRepository<User> userRepository, ILogger<BraceletService> logger,
-        IBraceletRepository braceletRepositoryForInclude)
+    public BraceletService(IBraceletRepository braceletRepository, IUserRepository userRepository, ILogger<BraceletService> logger)
     {
         _braceletRepository = braceletRepository;
         _userRepository = userRepository;
         _logger = logger;
-        _braceletRepositoryForInclude = braceletRepositoryForInclude;
     }
 
     public async Task<BraceletDetailsDto> CreateBraceletAsync(CreateBraceletRequestDto request)
@@ -48,7 +45,7 @@ public class BraceletService : IBraceletService
 
     public async Task<BraceletDetailsDto?> GetBraceletByIdAsync(Guid braceletId)
     {
-        var bracelet = await _braceletRepositoryForInclude.GetByIdWithUserAsync(braceletId);
+        var bracelet = await _braceletRepository.GetByIdWithUserAsync(braceletId);
         return bracelet?.ToDetailsDto();
     }
 

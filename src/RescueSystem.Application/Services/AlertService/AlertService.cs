@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using FluentValidation.Results;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
@@ -9,27 +9,27 @@ using RescueSystem.Contracts.Contracts.Requests;
 using RescueSystem.Contracts.Contracts.Responses;
 using RescueSystem.Domain.Constants;
 using RescueSystem.Domain.Entities.Bracelets;
-using RescueSystem.Domain.Entities;
 using RescueSystem.Domain.Entities.Alerts;
 using RescueSystem.Domain.Entities.Health;
 using RescueSystem.Domain.Interfaces;
 using RescueSystem.Application.Mapping;
+using RescueSystem.Domain.Common;
 
 namespace RescueSystem.Application.Services.AlertService;
 
 public class AlertService : IAlertService
 {
-    private readonly IRepository<Alert> _alertRepository;
-    private readonly IRepository<Bracelet> _braceletRepository;
-    private readonly IRepository<HealthProfileThresholds> _healthProfileThresholdsRepository;
+    private readonly IAlertRepository _alertRepository;
+    private readonly IBraceletRepository _braceletRepository;
+    private readonly IHealthProfileThresholdsRepository _healthProfileThresholdsRepository;
     private readonly ILogger<AlertService> _logger;
     private readonly IValidator<CreateAlertRequestDto> _validator;
     private readonly IAlertNotifier _alertNotifier;
 
     public AlertService(
-        IRepository<Alert> alertRepository,
-        IRepository<Bracelet> braceletRepository,
-        IRepository<HealthProfileThresholds> healthProfileThresholdsRepository,
+        IAlertRepository alertRepository,
+        IBraceletRepository braceletRepository,
+        IHealthProfileThresholdsRepository healthProfileThresholdsRepository,
         IValidator<CreateAlertRequestDto> validator, 
         ILogger<AlertService> logger, 
         IAlertNotifier alertNotifier)
@@ -44,7 +44,7 @@ public class AlertService : IAlertService
 
     public async Task<AlertDetailsDto> CreateAlertFromSignalAsync(CreateAlertRequestDto request)
     {
-        var bracelet = (await _braceletRepository.FindAsync(b => b.SerialNumber == request.SerialNumber)).FirstOrDefault();
+        var bracelet = await _braceletRepository.GetBraceletBySerialNumber(request.SerialNumber);
 
         if (bracelet == null)
         {
@@ -81,7 +81,11 @@ public class AlertService : IAlertService
             alert.HealthMetric = CreateHealthMetric(request, validationResult);
         }
 
-        var defaultProfile = (await _healthProfileThresholdsRepository.FindAsync(p => p.ProfileName == HealthProfileThresholdsConstants.DefaultProfileName)).First();
+        var defaultProfile = await _healthProfileThresholdsRepository.FindAsync(p => p.ProfileName == HealthProfileThresholdsConstants.DefaultProfileName);
+        if (defaultProfile == null)
+        {
+            throw new InvalidOperationException("Default health profile not found.");
+        }
         var userThresholds = bracelet.User?.HealthProfile ?? defaultProfile;
         alert.Triggers = DetermineAlertTriggers(request, userThresholds, defaultProfile);
 
@@ -108,7 +112,7 @@ public class AlertService : IAlertService
         bool pulseIsInvalid = validationResult.Errors
             .Any(e => e.PropertyName == $"{nameof(CreateAlertRequestDto.HealthMetrics)}.{nameof(HealthMetricsRequestDto.Pulse)}");
 
-        if (!pulseIsInvalid && request.HealthMetrics.Pulse.HasValue)
+        if (!pulseIsInvalid && request.HealthMetrics?.Pulse.HasValue == true)
         {
             healthMetric.Pulse = request.HealthMetrics.Pulse.Value;
         }
@@ -116,7 +120,7 @@ public class AlertService : IAlertService
         bool tempIsInvalid = validationResult.Errors
             .Any(e => e.PropertyName == $"{nameof(CreateAlertRequestDto.HealthMetrics)}.{nameof(HealthMetricsRequestDto.BodyTemperature)}");
 
-        if (!tempIsInvalid && request.HealthMetrics.BodyTemperature.HasValue)
+        if (!tempIsInvalid && request.HealthMetrics?.BodyTemperature.HasValue == true)
         {
             healthMetric.BodyTemperature = request.HealthMetrics.BodyTemperature.Value;
         }
@@ -181,21 +185,12 @@ public class AlertService : IAlertService
 
     public async Task DeleteAlertAsync(Guid alertId)
     {
-        var alert = await _alertRepository.GetByIdAsync(alertId);
-
-        if (alert == null)
-        {
-            throw new NotFoundException($"Alert with ID '{alertId}' not found.");
-        }
-
-        _alertRepository.Remove(alert);
-
+        _alertRepository.RemoveById(alertId);
         await _alertRepository.SaveChangesAsync();
-
         _logger.LogWarning("Alert with ID {AlertId} was deleted.", alertId);
     }
 
-        public async Task<PagedResult<AlertSummaryDto>> GetAllAlertsSummaryAsync(PaginationQueryParameters queryParams)
+    public async Task<PagedResult<AlertSummaryDto>> GetAllAlertsSummaryAsync(PaginationQueryParameters queryParams)
     {
         var alerts = await _alertRepository.GetAllAsync();
         var totalCount = alerts.Count();

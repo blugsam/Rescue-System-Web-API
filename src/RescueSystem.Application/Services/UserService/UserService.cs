@@ -1,20 +1,20 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using RescueSystem.Api.Exceptions;
 using RescueSystem.Contracts.Contracts.Requests;
 using RescueSystem.Contracts.Contracts.Responses;
 using RescueSystem.Application.Exceptions;
-using RescueSystem.Domain.Entities;
 using RescueSystem.Domain.Interfaces;
 using RescueSystem.Application.Mapping;
+using RescueSystem.Domain.Common;
 
 namespace RescueSystem.Application.Services.UserService;
 
 public class UserService : IUserService
 {
-    private readonly IRepository<User> _userRepository;
+    private readonly IUserRepository _userRepository;
     private readonly ILogger<UserService> _logger;
 
-    public UserService(IRepository<User> userRepository, ILogger<UserService> logger)
+    public UserService(IUserRepository userRepository, ILogger<UserService> logger)
     {
         _userRepository = userRepository;
         _logger = logger;
