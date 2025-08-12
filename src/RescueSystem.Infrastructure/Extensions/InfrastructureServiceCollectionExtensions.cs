@@ -16,11 +16,14 @@ public static class InfrastructureServiceCollectionExtensions
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+                npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
             });
         });
 
-        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        services.AddScoped(typeof(IBraceletRepository), typeof(BraceletRepository));
+        services.AddScoped<IBraceletRepository, BraceletRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IAlertRepository, AlertRepository>();
+        services.AddScoped<IHealthProfileThresholdsRepository, HealthProfileThresholdsRepository>();
 
         return services;
     }
