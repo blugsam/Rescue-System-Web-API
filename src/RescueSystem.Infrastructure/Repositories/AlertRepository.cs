@@ -23,7 +23,11 @@ public class AlertRepository : IAlertRepository
 
     public async Task<IEnumerable<Alert>> GetAllAsync()
     {
-        return await _dbContext.Alerts.ToListAsync();
+        return await _dbContext.Alerts
+            .Include(a => a.Triggers)
+            .Include(a => a.Bracelet)
+            .ThenInclude(b => b!.User)
+            .ToListAsync();
     }
 
     public async Task AddAsync(Alert alert)
