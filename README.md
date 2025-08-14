@@ -41,31 +41,49 @@ This project is built using the following technologies:
 To get started with this project, follow these steps:
 
 1) Clone the repository using the following command:
-```bash
-git clone https://github.com/blugsam/Rescue-System-Web-API
-```
+    ```bash
+    git clone https://github.com/blugsam/Rescue-System-Web-API
+    ```
 
 2) Create an appsettings.Development.json file in the main project directory. You can copy appsettings.example.json and fill in your PostgreSQL credentials
 
 3) To setup postgres container run the following command in project root folder.
-```bash
-docker-compose up
-```
+    ```bash
+    docker-compose up
+    ```
 
 4) Run the following command for applying EntityFramework Core migrations.
-```bash
-dotnet ef database update --project src/RescueSystem.Infrastructure --startup-project src/RescueSystem.Api
-```
+    ```bash
+    dotnet ef database update --project src/RescueSystem.Infrastructure --startup-project src/RescueSystem.Api
+    ```
+
+5) Make sure you have built the NuGet package as described in the library's README. Create a nuget.config file in the root folder of your project with the following content:
+
+    ```xml
+    <?xml version="1.0" encoding="utf-8"?>
+    <configuration>
+      <packageSources>
+        <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
+        <add key="LocalPackages" value="./local-packages" />
+      </packageSources>
+    </configuration>
+    ```
+    Create a local-packages folder nearby and copy the compiled RescueSystem.ClassLibrary.[VERSION].nupkg file into it.
+    Run the command to add the package to the project:
+
+    ```bash
+    dotnet add package RescueSystem.ClassLibrary
+    ```
 
 5) Build and run the application
-```bash
-dotnet run
-```
+    ```bash
+    dotnet run
+    ```
 
 6) The API is now available at https://localhost:5107. Navigate to /swagger to see the UI.
-```bash
-http://localhost:5107/swagger/
-```
+    ```bash
+    http://localhost:5107/swagger/
+    ```
 
 ## Endpoint overview
 
