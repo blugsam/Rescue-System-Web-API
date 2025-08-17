@@ -30,8 +30,7 @@ try
     var app = builder.Build();
 
     app.UseSerilogRequestLogging();
-    app.MapGet("/", () => "Rescue System API host succesfuly started.");
-    app.UseApiExceptionHandler();
+    app.MapGet("/", () => "Rescue System API host successfully started.");
 
     app.UseSwagger();
     app.UseSwaggerUI();
