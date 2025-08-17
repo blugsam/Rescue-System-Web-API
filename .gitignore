@@ -585,3 +585,4 @@ FodyWeavers.xsd
 /src/RescueSystem.Application/Services/AlertService.cs
 /src/RescueSystem.Api/appsettings.Development.json
 /src/RescueSystem.Api/appsettings.Production.json
+/.gitlab-ci.yml
