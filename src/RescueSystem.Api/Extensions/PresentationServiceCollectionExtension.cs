@@ -1,4 +1,7 @@
-﻿namespace RescueSystem.Api.Extensions;
+﻿using RescueSystem.Api.Services;
+using RescueSystem.Application.Interfaces;
+
+namespace RescueSystem.Api.Extensions;
 
 public static class PresentationServiceCollectionExtension
 {
@@ -9,6 +12,8 @@ public static class PresentationServiceCollectionExtension
         services.AddSwaggerGen();
         services.AddLogging();
         services.AddSignalR();
+        services.AddScoped<IAlertNotifier, SignalRAlertNotifier>();
+
         return services;
     }
 }

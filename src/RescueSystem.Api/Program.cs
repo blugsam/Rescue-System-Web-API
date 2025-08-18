@@ -1,11 +1,8 @@
 using Serilog;
-using FluentValidation;
-using RescueSystem.Api.Extensions;
 using RescueSystem.Api.Hubs;
-using RescueSystem.Api.Services;
-using RescueSystem.Application.Interfaces;
-using RescueSystem.Application.Validation;
+using RescueSystem.Api.Extensions;
 using RescueSystem.Infrastructure.Extensions;
+using RescueSystem.Application.Extensions;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -24,8 +21,6 @@ try
     builder.Services.AddPresentation();
     builder.Services.AddInfrastructure(configuration);
     builder.Services.AddApplication();
-    builder.Services.AddValidatorsFromAssemblyContaining<CreateAlertRequestValidator>();
-    builder.Services.AddScoped<IAlertNotifier, SignalRAlertNotifier>();
 
     var app = builder.Build();
 
