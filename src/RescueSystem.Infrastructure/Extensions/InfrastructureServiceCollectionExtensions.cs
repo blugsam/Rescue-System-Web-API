@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using RescueSystem.Domain.Interfaces;
 using RescueSystem.Infrastructure.Repositories;
+using RescueSystem.Infrastructure.Data;
 
 namespace RescueSystem.Infrastructure.Extensions;
 

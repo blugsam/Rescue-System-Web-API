@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using RescueSystem.Api.Exceptions;
 using RescueSystem.Contracts.Contracts.Requests;
 using RescueSystem.Contracts.Contracts.Responses;
 using RescueSystem.Application.Exceptions;

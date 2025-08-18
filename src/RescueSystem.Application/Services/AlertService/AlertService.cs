@@ -2,7 +2,6 @@ using System.Text.Json;
 using FluentValidation.Results;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
-using RescueSystem.Application.Exceptions;
 using RescueSystem.Application.Interfaces;
 using RescueSystem.Contracts.Contracts.Enums;
 using RescueSystem.Contracts.Contracts.Requests;

@@ -1,6 +1,4 @@
-﻿using RescueSystem.Application.Exceptions;
-
-namespace RescueSystem.Api.Exceptions;
+﻿namespace RescueSystem.Application.Exceptions;
 
 public class BadRequestException : RescueSystemException
 {

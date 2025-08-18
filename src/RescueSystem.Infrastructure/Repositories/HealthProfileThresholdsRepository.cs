@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using RescueSystem.Domain.Entities.Health;
 using RescueSystem.Domain.Interfaces;
-using System.Linq.Expressions;
+using RescueSystem.Infrastructure.Data;
 
 namespace RescueSystem.Infrastructure.Repositories;
 

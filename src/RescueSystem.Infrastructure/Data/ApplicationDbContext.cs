@@ -4,7 +4,7 @@ using RescueSystem.Domain.Entities.Bracelets;
 using RescueSystem.Domain.Entities.Health;
 using RescueSystem.Domain.Entities;
 
-namespace RescueSystem.Infrastructure;
+namespace RescueSystem.Infrastructure.Data;
 
 public class ApplicationDbContext : DbContext
 {

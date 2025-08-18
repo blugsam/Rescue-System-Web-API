@@ -2,7 +2,6 @@ using RescueSystem.Contracts.Contracts.Responses;
 using RescueSystem.Contracts.Contracts.Requests;
 using RescueSystem.Domain.Entities.Alerts;
 using RescueSystem.Domain.Entities.Health;
-using RescueSystem.Application.Mapping.Bracelets;
 
 namespace RescueSystem.Application.Mapping;
 

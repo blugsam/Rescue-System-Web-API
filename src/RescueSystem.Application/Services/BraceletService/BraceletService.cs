@@ -1,11 +1,9 @@
 using Microsoft.Extensions.Logging;
-using RescueSystem.Api.Exceptions;
 using RescueSystem.Contracts.Contracts.Requests;
 using RescueSystem.Contracts.Contracts.Responses;
 using RescueSystem.Contracts.Contracts.Enums;
 using RescueSystem.Application.Exceptions;
 using RescueSystem.Domain.Interfaces;
-using RescueSystem.Application.Mapping.Bracelets;
 using RescueSystem.Application.Mapping;
 using RescueSystem.Domain.Common;
 

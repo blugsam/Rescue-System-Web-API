@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RescueSystem.Domain.Entities;
 using RescueSystem.Domain.Interfaces;
+using RescueSystem.Infrastructure.Data;
 
 namespace RescueSystem.Infrastructure.Repositories;
 

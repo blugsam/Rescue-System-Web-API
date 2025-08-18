@@ -2,7 +2,7 @@ using RescueSystem.Contracts.Contracts.Requests;
 using RescueSystem.Contracts.Contracts.Responses;
 using RescueSystem.Domain.Entities.Bracelets;
 
-namespace RescueSystem.Application.Mapping.Bracelets;
+namespace RescueSystem.Application.Mapping;
 
 public static class BraceletMapping
 {
