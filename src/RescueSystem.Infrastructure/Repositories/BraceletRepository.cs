@@ -30,7 +30,8 @@ public class BraceletRepository : IBraceletRepository
     }
 
     public async Task<IEnumerable<Bracelet>> FindAsync(Expression<Func<Bracelet, bool>> predicate)
-    {        return await _dbContext.Bracelets.Where(predicate).ToListAsync();
+    {   
+        return await _dbContext.Bracelets.Where(predicate).ToListAsync();
     }
 
     public async Task<IEnumerable<Bracelet>> GetAllAsync()

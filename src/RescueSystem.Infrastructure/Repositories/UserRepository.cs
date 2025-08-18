@@ -30,7 +30,8 @@ public class UserRepository : IUserRepository
     }
 
     public void Remove(User user)
-    {        _dbContext.Users.Remove(user);
+    { 
+        _dbContext.Users.Remove(user);
     }
 
     public async Task<int> SaveChangesAsync()
