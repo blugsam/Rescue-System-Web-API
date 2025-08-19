@@ -1,6 +1,5 @@
 ﻿using RescueSystem.Domain.Entities.Alerts;
 using RescueSystem.Contracts.Contracts.Enums;
-using System.Collections.ObjectModel;
 
 namespace RescueSystem.Domain.Entities.Bracelets;
 
