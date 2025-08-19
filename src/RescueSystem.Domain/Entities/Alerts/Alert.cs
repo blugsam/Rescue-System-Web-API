@@ -1,23 +1,57 @@
-﻿using RescueSystem.Domain.Entities.Bracelets;
-using RescueSystem.Domain.Entities.Health;
-using RescueSystem.Contracts.Contracts.Enums;
+﻿using RescueSystem.Contracts.Contracts.Enums;
 
 namespace RescueSystem.Domain.Entities.Alerts;
 
 public class Alert
 {
-    public Guid Id { get; set; }
-    public DateTimeOffset Timestamp { get; set; }
-    public ICollection<AlertTrigger> Triggers { get; set; } = new List<AlertTrigger>();
-    public AlertProcessingStatus Status { get; set; } = AlertProcessingStatus.New;
+    public Guid Id { get; private set; }
+    public DateTime CreatedAt { get; private set; }
+    public double Latitude { get; private set; }
+    public double Longitude { get; private set; }
+    public AlertProcessingStatus Status { get; private set; }
+    public AlertQualityLevel QualityLevel { get; private set; }
+    public Guid? BraceletId { get; private set; }
 
-    public double Latitude { get; set; }
-    public double Longitude { get; set; }
+    public Alert()
+    {
 
-    public Guid? BraceletId { get; set; }
-    public Bracelet? Bracelet { get; set; } = null!;
-    public HealthMetric? HealthMetric { get; set; }
+    }
 
-    public AlertQualityLevel QualityLevel { get; set; }
-    public ICollection<AlertValidationError> ValidationErrors { get; set; } = new List<AlertValidationError>();
+    private Alert(Guid id, DateTime createdAt, double latitude, double longitude, AlertProcessingStatus status, AlertQualityLevel qualityLevel, Guid? braceletId)
+    {
+        Id = id;
+        CreatedAt = createdAt;
+        Latitude = latitude;
+        Longitude = longitude;
+        Status = status;
+        QualityLevel = qualityLevel;
+        BraceletId = braceletId;
+    }
+
+    public static Alert Create(double latitude, double longitude, AlertProcessingStatus status, AlertQualityLevel qualityLevel, Guid? braceletId)
+    {
+        return new Alert(Guid.NewGuid(), DateTime.UtcNow, latitude, longitude, AlertProcessingStatus.New, qualityLevel, braceletId);
+    }
+
+    public void ChangeProcessingStatus(AlertProcessingStatus newStatus)
+    {
+        if (newStatus == Status)
+            return;
+
+        if (Status == AlertProcessingStatus.Resolved || Status == AlertProcessingStatus.FalseAlarm)
+            throw new InvalidOperationException("Cannot change status after alert is completed.");
+
+        if (Status == AlertProcessingStatus.New && newStatus == AlertProcessingStatus.Resolved)
+            throw new InvalidOperationException("Alert cannot be resolved without being processed.");
+
+        Status = newStatus;
+    }
+
+    public void ChangeAlertQualityLevel(AlertQualityLevel newQualityLevel)
+    {
+        if (newQualityLevel == QualityLevel)
+            return;
+
+        QualityLevel = newQualityLevel;
+    }
 }
