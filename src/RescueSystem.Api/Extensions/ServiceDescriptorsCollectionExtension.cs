@@ -3,7 +3,7 @@ using RescueSystem.Application.Interfaces;
 
 namespace RescueSystem.Api.Extensions;
 
-public static class PresentationServiceCollectionExtension
+public static class ServiceDescriptorsCollectionExtension
 {
     public static IServiceCollection AddPresentation(this IServiceCollection services)
     {

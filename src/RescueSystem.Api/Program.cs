@@ -1,5 +1,4 @@
 using Serilog;
-using RescueSystem.Api.Hubs;
 using RescueSystem.Api.Extensions;
 using RescueSystem.Infrastructure.Extensions;
 using RescueSystem.Application.Extensions;
@@ -23,18 +22,8 @@ try
     builder.Services.AddApplication();
 
     var app = builder.Build();
-
-    app.UseSerilogRequestLogging();
-    app.MapGet("/", () => "Rescue System API host successfully started.");
-
-    app.UseSwagger();
-    app.UseSwaggerUI();
-
-    app.UseHttpsRedirection();
-    app.UseStaticFiles();
-    app.UseAuthorization();
-    app.MapControllers();
-    app.MapHub<AlertHub>("/alert-hub");
+    app.AddApplicationConfiguration();
+    app.AddRouteConfiguration();
     app.Run();
 }
 catch(Exception exception)

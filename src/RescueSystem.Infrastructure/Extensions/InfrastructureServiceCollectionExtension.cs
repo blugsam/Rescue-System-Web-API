@@ -7,7 +7,7 @@ using RescueSystem.Infrastructure.Data;
 
 namespace RescueSystem.Infrastructure.Extensions;
 
-public static class InfrastructureServiceCollectionExtensions
+public static class InfrastructureServiceCollectionExtension
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
