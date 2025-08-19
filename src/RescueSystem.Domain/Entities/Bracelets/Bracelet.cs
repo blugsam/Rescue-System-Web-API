@@ -12,10 +12,12 @@ public class Bracelet
     public DateTime? LastRepairDate { get; private set; }
     public BraceletStatus Status { get; private set; }
     public Guid? UserId { get; private set; }
+
+    private readonly HashSet<Guid> _alertIds = new();
+
     private ICollection<Alert> Alerts { get; set; } = new List<Alert>();
 
-    private readonly Collection<Guid> _alertIds = new();
-    public IReadOnlyCollection<Guid> AlertIds => _alertIds;
+    public IReadOnlySet<Guid> AlertIds => _alertIds;
 
     public Bracelet()
     {
@@ -30,8 +32,6 @@ public class Bracelet
         LastRepairDate = null;
         Status = status;
         UserId = userId;
-        Alerts = new List<Alert>();
-        _alertIds = new Collection<Guid>();
     }
 
     public static Bracelet Create(string serialNumber, Guid? userId = null)
