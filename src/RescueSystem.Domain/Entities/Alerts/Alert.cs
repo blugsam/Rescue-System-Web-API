@@ -6,18 +6,25 @@ public class Alert
 {
     public Guid Id { get; private set; }
     public DateTime CreatedAt { get; private set; }
+
     public double Latitude { get; private set; }
     public double Longitude { get; private set; }
+
+    public Guid? BraceletId { get; private set; }
     public AlertProcessingStatus Status { get; private set; }
     public AlertQualityLevel QualityLevel { get; private set; }
-    public Guid? BraceletId { get; private set; }
+
+    public int? HeartRate { get; private set; }
+    public double? BodyTemperature { get; private set; }
 
     public Alert()
     {
 
     }
 
-    private Alert(Guid id, DateTime createdAt, double latitude, double longitude, AlertProcessingStatus status, AlertQualityLevel qualityLevel, Guid? braceletId)
+    private Alert(Guid id, DateTime createdAt, double latitude,
+        double longitude, AlertProcessingStatus status, AlertQualityLevel qualityLevel,
+        Guid? braceletId, int? heartRate, double? bodyTemperature)
     {
         Id = id;
         CreatedAt = createdAt;
@@ -26,11 +33,16 @@ public class Alert
         Status = status;
         QualityLevel = qualityLevel;
         BraceletId = braceletId;
+        HeartRate = heartRate;
+        BodyTemperature = bodyTemperature;
     }
 
-    public static Alert Create(double latitude, double longitude, AlertProcessingStatus status, AlertQualityLevel qualityLevel, Guid? braceletId)
+    public static Alert Create(double latitude, double longitude, AlertProcessingStatus status,
+        AlertQualityLevel qualityLevel, Guid? braceletId, int? heartRate, double? bodyTemperature)
     {
-        return new Alert(Guid.NewGuid(), DateTime.UtcNow, latitude, longitude, AlertProcessingStatus.New, qualityLevel, braceletId);
+        return new Alert(Guid.NewGuid(), DateTime.UtcNow, latitude,
+            longitude, AlertProcessingStatus.New,
+            qualityLevel, braceletId, heartRate, bodyTemperature);
     }
 
     public void ChangeProcessingStatus(AlertProcessingStatus newStatus)
