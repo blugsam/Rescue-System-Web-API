@@ -1,4 +1,4 @@
-﻿namespace RescueSystem.Domain.Entities;
+﻿namespace RescueSystem.Domain.Entities.Users;
 
 public class User
 {
@@ -28,14 +28,14 @@ public class User
 
     public static User Create(string fullName, DateOnly dateOfBirth, string? medicalNotes, string? emergencyContact, Guid? braceletId = null)
     {
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(fullName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(fullName);
 
         return new User(Guid.NewGuid(), fullName, dateOfBirth, DateTime.UtcNow, medicalNotes, emergencyContact, braceletId);
     }
 
     public void ChangeName(string newFullName)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(newFullName);
+        ArgumentException.ThrowIfNullOrEmpty(newFullName);
 
         if (newFullName == FullName)
             return;
