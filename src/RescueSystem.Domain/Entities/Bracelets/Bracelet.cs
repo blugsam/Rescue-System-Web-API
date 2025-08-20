@@ -39,4 +39,12 @@ public class Bracelet
 
         return new Bracelet(Guid.NewGuid(), serialNumber, DateTime.UtcNow, BraceletStatus.Inactive, userId);
     }
+
+    public void ChangeStatus(BraceletStatus newStatus)
+    {
+        if (newStatus == Status)
+            return;
+
+        Status = newStatus;
+    }
 }
