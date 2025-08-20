@@ -14,17 +14,17 @@ public class HealthMetric
 
     }
 
-    private HealthMetric(Guid id, Guid braceletId, int? heartRate, double? bodyTemperature)
+    private HealthMetric(Guid id, Guid braceletId, DateTime createdAt, int? heartRate, double? bodyTemperature)
     {
         Id = id;
         BraceletId = braceletId;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = createdAt;
         HeartRate = heartRate;
         BodyTemperature = bodyTemperature;
     }
 
     public static HealthMetric Create(Guid braceletId, int? heartRate, double? bodyTemperature)
     {
-        return new HealthMetric(Guid.NewGuid(), braceletId, heartRate, bodyTemperature);
+        return new HealthMetric(Guid.NewGuid(), braceletId, DateTime.UtcNow, heartRate, bodyTemperature);
     }
 }
