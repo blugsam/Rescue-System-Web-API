@@ -15,7 +15,8 @@ public class User
 
     }
 
-    private User(Guid id, string fullName, DateOnly dateOfBirth, DateTime registrationDate, string? medicalNotes, string? emergencyContact, Guid? braceletId)
+    private User(Guid id, string fullName, DateOnly dateOfBirth, DateTime registrationDate,
+        string? medicalNotes, string? emergencyContact, Guid? braceletId)
     {
         Id = id;
         FullName = fullName;
@@ -26,7 +27,8 @@ public class User
         BraceletId = braceletId;
     }
 
-    public static User Create(string fullName, DateOnly dateOfBirth, string? medicalNotes, string? emergencyContact, Guid? braceletId = null)
+    public static User Create(string fullName, DateOnly dateOfBirth, string? medicalNotes,
+        string? emergencyContact, Guid? braceletId = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(fullName);
 

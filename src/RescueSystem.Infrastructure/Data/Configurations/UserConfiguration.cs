@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using RescueSystem.Domain.Entities;
 using RescueSystem.Domain.Entities.Bracelets;
+using RescueSystem.Domain.Entities.Users;
 
 namespace RescueSystem.Infrastructure.Data.Configurations;
 

@@ -11,8 +11,4 @@
     <PackageReference Include="RescueSystem.Contracts" Version="1.1.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Entities\Health\" />
-  </ItemGroup>
-
 </Project>

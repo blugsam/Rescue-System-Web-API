@@ -4,7 +4,7 @@ using RescueSystem.Application.Exceptions;
 using RescueSystem.Domain.Entities.Bracelets;
 using RescueSystem.Domain.Entities.Users;
 
-namespace RescueSystem.Application.Services.UserService;
+namespace RescueSystem.Application.Services.UserUseCases;
 
 public class UserUseCases(IUserRepository userRepository, IBraceletRepository braceletRepository)
 {
@@ -23,11 +23,17 @@ public class UserUseCases(IUserRepository userRepository, IBraceletRepository br
 
     public async Task AttachBraceletAsync(AttachBraceletCommand command, CancellationToken cancellationToken = default)
     {
-        var user = await userRepository.GetByIdAsync(command.UserId, cancellationToken)
-            ?? throw new NotFoundException(nameof(User), command.UserId);
+        var user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);
+        if (user == null)
+        {
+            throw new NotFoundException(nameof(User), command.UserId);
+        }
 
-        var bracelet = await braceletRepository.GetByIdAsync(command.BraceletId, cancellationToken)
-            ?? throw new NotFoundException(nameof(Bracelet), command.BraceletId);
+        var bracelet = await braceletRepository.GetByIdAsync(command.BraceletId, cancellationToken);
+        if (bracelet == null)
+        {
+            throw new NotFoundException(nameof(Bracelet), command.BraceletId);
+        }
 
         if (bracelet.UserId is not null)
         {
