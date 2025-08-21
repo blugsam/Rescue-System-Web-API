@@ -2,4 +2,4 @@
 
 namespace RescueSystem.Application.DTO;
 
-public record BraceletDto(Guid id, string serialNumber, DateTime registrationDate, DateTime? lastRepairDate, BraceletStatus status, Guid? userId);
+public record BraceletDto(Guid Id, string SerialNumber, DateTime RegistrationDate, DateTime? LastRepairDate, BraceletStatus Status, Guid? UserId);
