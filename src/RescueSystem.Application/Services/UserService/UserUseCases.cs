@@ -1,10 +1,10 @@
 ﻿using RescueSystem.Application.Commands;
 using RescueSystem.Application.Contracts;
 using RescueSystem.Application.Exceptions;
-using RescueSystem.Domain.Entities.Bracelets;
 using RescueSystem.Domain.Entities.Users;
+using RescueSystem.Domain.Entities.Bracelets;
 
-namespace RescueSystem.Application.Services.UserUseCases;
+namespace RescueSystem.Application.Services.UserService;
 
 public class UserUseCases(IUserRepository userRepository, IBraceletRepository braceletRepository)
 {
@@ -25,23 +25,24 @@ public class UserUseCases(IUserRepository userRepository, IBraceletRepository br
     {
         var user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);
         if (user == null)
-        {
             throw new NotFoundException(nameof(User), command.UserId);
-        }
 
         var bracelet = await braceletRepository.GetByIdAsync(command.BraceletId, cancellationToken);
         if (bracelet == null)
-        {
             throw new NotFoundException(nameof(Bracelet), command.BraceletId);
-        }
 
         if (bracelet.UserId is not null)
-        {
             throw new InvalidOperationException($"Bracelet {bracelet.Id} is already attached to user {bracelet.UserId}.");
-        }
 
         user.AttachBracelet(command.BraceletId);
+    }
 
-        await userRepository.UpdateAsync(user, cancellationToken);
+    public async Task DetachBraceletAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await userRepository.GetByIdAsync(userId, cancellationToken);
+        if (user == null)
+            throw new NotFoundException(nameof(User), userId);
+
+        user.DetachBracelet();
     }
 }

@@ -2,7 +2,7 @@
 using RescueSystem.Application.Contracts;
 using RescueSystem.Application.DTO;
 
-namespace RescueSystem.Application.Services.UserQueries;
+namespace RescueSystem.Application.Services.UserService;
 
 public class UserQueries(IApplicationDbContext dbContext)
 {
