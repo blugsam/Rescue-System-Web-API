@@ -17,11 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RescueSystem.Domain\RescueSystem.Domain.csproj" />
+    <Folder Include="Mapping\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Mapping\" />
+    <ProjectReference Include="..\RescueSystem.Domain\RescueSystem.Domain.csproj" />
   </ItemGroup>
 
 </Project>

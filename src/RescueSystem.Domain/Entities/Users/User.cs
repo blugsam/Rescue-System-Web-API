@@ -80,7 +80,7 @@ public class User
     public void DetachBracelet()
     {
         if (BraceletId is null)
-            throw new InvalidOperationException("User does not have an attached bracelet.");
+            throw new InvalidOperationException($"User {Id} does not have an attached bracelet.");
 
         BraceletId = null;
     }

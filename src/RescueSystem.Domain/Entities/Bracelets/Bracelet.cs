@@ -23,21 +23,21 @@ public class Bracelet
 
     }
 
-    private Bracelet(Guid id, string serialNumber, DateTime registrationDate, BraceletStatus status, Guid? userId)
+    private Bracelet(Guid id, string serialNumber, DateTime registrationDate, DateTime? lastRepairDate, BraceletStatus status, Guid? userId)
     {
         Id = id;
         SerialNumber = serialNumber;
         RegistrationInSystemDate = registrationDate;
-        LastRepairDate = null;
+        LastRepairDate = lastRepairDate;
         Status = status;
         UserId = userId;
     }
 
-    public static Bracelet Create(string serialNumber, Guid? userId = null)
+    public static Bracelet Create(string serialNumber, DateTime? lastRepairDate = null , Guid? userId = null)
     {
         ArgumentNullException.ThrowIfNullOrWhiteSpace(serialNumber);
 
-        return new Bracelet(Guid.NewGuid(), serialNumber, DateTime.UtcNow, BraceletStatus.Inactive, userId);
+        return new Bracelet(Guid.NewGuid(), serialNumber, DateTime.UtcNow, lastRepairDate, BraceletStatus.Inactive, userId);
     }
 
     public void ChangeStatus(BraceletStatus newStatus)
