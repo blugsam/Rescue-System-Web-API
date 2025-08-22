@@ -37,7 +37,7 @@ public class User
 
     public void ChangeName(string newFullName)
     {
-        ArgumentException.ThrowIfNullOrEmpty(newFullName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(newFullName);
 
         if (newFullName == FullName)
             return;
@@ -69,18 +69,24 @@ public class User
         EmergencyContact = newEmergencyContact ?? string.Empty;
     }
 
-    public void AttachBracelet(Guid attachingBraceletGuid)
+    public void AttachBracelet(Guid braceletId)
     {
-        if (attachingBraceletGuid == Guid.Empty)
-            throw new ArgumentException("Bracelet cannot be empty", nameof(attachingBraceletGuid));
+        if (braceletId == Guid.Empty)
+            throw new ArgumentException("Bracelet ID cannot be empty", nameof(braceletId));
 
-        BraceletId = attachingBraceletGuid;
+        if (BraceletId == braceletId)
+            throw new InvalidOperationException($"Bracelet {braceletId} is already attached to this user");
+
+        if (BraceletId.HasValue)
+            throw new InvalidOperationException($"User {Id} already has an attached bracelet {BraceletId}");
+
+        BraceletId = braceletId;
     }
 
     public void DetachBracelet()
     {
-        if (BraceletId is null)
-            throw new InvalidOperationException($"User {Id} does not have an attached bracelet.");
+        if (!BraceletId.HasValue)
+            throw new InvalidOperationException($"User {Id} does not have an attached bracelet");
 
         BraceletId = null;
     }
