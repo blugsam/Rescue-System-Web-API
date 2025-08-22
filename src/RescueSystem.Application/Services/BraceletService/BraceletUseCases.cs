@@ -23,7 +23,7 @@ public class BraceletUseCases(IBraceletRepository braceletRepository)
             throw new NotFoundException(nameof(bracelet), braceletId);
 
         if (bracelet.UserId.HasValue)
-            throw new BadRequestException($"Bracelet with ID {bracelet.Id} already assigned to user {bracelet.UserId}");
+            throw new BadRequestException($"Bracelet with ID {bracelet.Id} is assigned to user {bracelet.UserId}");
 
         await braceletRepository.DeleteAsync(bracelet, cancellationToken);
     }

@@ -40,6 +40,32 @@ public class Bracelet
         return new Bracelet(Guid.NewGuid(), serialNumber, DateTime.UtcNow, lastRepairDate, BraceletStatus.Inactive, userId);
     }
 
+    public void AssignUser(Guid userId)
+    {
+        if (userId == Guid.Empty)
+            throw new ArgumentException("User ID cannot be empty", nameof(userId));
+
+        if (UserId.HasValue && UserId.Value != userId)
+            throw new InvalidOperationException($"Bracelet {Id} already assigned to user {UserId}");
+
+        UserId = userId;
+        if (Status != BraceletStatus.Active)
+            Status = BraceletStatus.Active;
+    }
+
+    public void UnassignUser(Guid expectedUserId)
+    {
+        if (!UserId.HasValue)
+            throw new InvalidOperationException($"Bracelet {Id} is not assigned");
+
+        if (UserId.Value != expectedUserId)
+            throw new InvalidOperationException($"Bracelet {Id} assigned to another user {UserId}, not {expectedUserId}");
+
+        UserId = null;
+        if (Status != BraceletStatus.Inactive)
+            Status = BraceletStatus.Inactive;
+    }
+
     public void ChangeStatus(BraceletStatus newStatus)
     {
         if (newStatus == Status)
