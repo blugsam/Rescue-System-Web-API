@@ -9,7 +9,7 @@ public class HealthMetric
     public int? HeartRate { get; private set; }
     public double? BodyTemperature { get; private set; }
 
-    private HealthMetric() 
+    public HealthMetric() 
     {
 
     }
