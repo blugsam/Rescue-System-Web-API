@@ -21,4 +21,8 @@
     <ProjectReference Include="..\RescueSystem.Application\RescueSystem.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\Configurations\" />
+  </ItemGroup>
+
 </Project>

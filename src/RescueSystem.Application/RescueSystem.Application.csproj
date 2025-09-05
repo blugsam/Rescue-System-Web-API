@@ -17,10 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Mapping\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\RescueSystem.Domain\RescueSystem.Domain.csproj" />
   </ItemGroup>
 

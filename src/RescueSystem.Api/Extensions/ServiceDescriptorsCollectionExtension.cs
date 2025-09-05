@@ -1,7 +1,4 @@
-﻿using RescueSystem.Api.Services;
-using RescueSystem.Application.Interfaces;
-
-namespace RescueSystem.Api.Extensions;
+﻿namespace RescueSystem.Api.Extensions;
 
 public static class ServiceDescriptorsCollectionExtension
 {
@@ -11,9 +8,7 @@ public static class ServiceDescriptorsCollectionExtension
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
         services.AddLogging();
-        services.AddSignalR();
-        services.AddScoped<IAlertNotifier, SignalRAlertNotifier>();
-
+        
         return services;
     }
 }

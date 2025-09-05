@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using RescueSystem.Domain.Interfaces;
-using RescueSystem.Infrastructure.Repositories;
 using RescueSystem.Infrastructure.Data;
 
 namespace RescueSystem.Infrastructure.Extensions;
@@ -21,12 +19,6 @@ public static class InfrastructureServiceCollectionExtension
             });
         });
 
-        services.AddScoped<IBraceletRepository, BraceletRepository>();
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IAlertRepository, AlertRepository>();
-        services.AddScoped<IHealthProfileThresholdsRepository, HealthProfileThresholdsRepository>();
-
         return services;
     }
 }
-
